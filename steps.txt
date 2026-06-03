@@ -1,0 +1,47 @@
+node --version
+npm --version
+
+npm install -g expo-cli
+expo --version
+
+ *** Instalar app Expo Go en el telefono (Android o IOS)
+
+
+npm install
+
+ *** Configurar .env
+
+npx expo start
+
+
+**** NOTA:
+- Puede que las versiones de expo sean muy nuevas y no estén soportadas en las tiendas Android/IOS, entonces mejor hacer un build
+
+************************* OPCION 1: Build en la nube de expo
+npm install -g eas-cli
+eas login
+
+- Iniciar sesión
+
+eas build:configure
+eas build --profile development --platform android
+"Esto sube el codigo a los servidores de Expo y construye la APK en la nube. Tarda ~5-10 minutos. Al terminar te da un enlace para descargar e instalar la APK directamente en tu telefono Android."
+"Completar datos y rellenar"
+
+npx expo start --dev-client
+
+
+************************* OPCION 2: Build local
+
+echo $env:ANDROID_HOME
+adb --version
+
+- Activar en android opciones depuracion
+
+adb devices
+List of devices attached
+R58Txxxxxxx    device
+
+
+npx expo run:android
+npx expo start --dev-client
