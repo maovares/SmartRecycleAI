@@ -11,14 +11,35 @@ export async function analyzeImage(imageUri, idToken) {
 
   formData.append('image', { uri: imageUri, name: filename, type });
 
-  const response = await axios.post(`${BASE_URL}/ai/analyze-image`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${idToken}`,
-    },
-    timeout: 30000,
-  });
+  console.log('=== POSTMAN DEBUG ===');
+  console.log('METHOD: POST');
+  console.log('URL:', `${BASE_URL}/ai/analyze-image`);
+  console.log('HEADERS:');
+  console.log('  Content-Type: multipart/form-data');
+  console.log('  Authorization: Bearer', idToken);
+  console.log('BODY (form-data):');
+  console.log('  image:', imageUri);
+  console.log('  filename:', filename);
+  console.log('  type:', type);
+  console.log('====================');
+
+  let response;
+  try {
+    response = await axios.post(`${BASE_URL}/ai/analyze-image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${idToken}`,
+      },
       timeout: 90000,
+    });
+    console.log('[API] Status:', response.status);
+    console.log('[API] Response:', JSON.stringify(response.data));
+  } catch (err) {
+    console.log('[API] ERROR status:', err.response?.status);
+    console.log('[API] ERROR data:', JSON.stringify(err.response?.data));
+    console.log('[API] ERROR message:', err.message);
+    throw err;
+  }
 
   return response.data;
 }
