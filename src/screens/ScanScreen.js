@@ -57,7 +57,12 @@ export default function ScanScreen({ navigation }) {
       setPreview(null);
       navigation.navigate('Result', { result });
     } catch (err) {
-      Alert.alert('Error', err.response?.data?.detail || err.message || 'No se pudo analizar la imagen.');
+      const msg = err.response?.data?.detail
+        || (err.message === 'Aborted' || err.code === 'ECONNABORTED'
+          ? 'El servidor tardó demasiado en responder. Intenta de nuevo en unos segundos.'
+          : err.message)
+        || 'No se pudo analizar la imagen.';
+      Alert.alert('Error', msg);
     } finally {
       setAnalyzing(false);
     }

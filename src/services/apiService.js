@@ -6,7 +6,8 @@ export async function analyzeImage(imageUri, idToken) {
   const formData = new FormData();
   const filename = imageUri.split('/').pop();
   const match = /\.(\w+)$/.exec(filename);
-  const type = match ? `image/${match[1]}` : 'image/jpeg';
+  const ext = (match ? match[1] : 'jpeg').toLowerCase().replace('jpg', 'jpeg');
+  const type = `image/${ext}`;
 
   formData.append('image', { uri: imageUri, name: filename, type });
 
@@ -17,6 +18,7 @@ export async function analyzeImage(imageUri, idToken) {
     },
     timeout: 30000,
   });
+      timeout: 90000,
 
   return response.data;
 }
