@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { app } from '../services/authService';
+import auth from '@react-native-firebase/auth';
 
 const AuthContext = createContext(null);
 
@@ -10,8 +9,7 @@ export function AuthProvider({ children }) {
   const [ecoPoints, setEcoPoints] = useState(0);
 
   useEffect(() => {
-    const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = auth().onAuthStateChanged((firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
     });

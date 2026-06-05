@@ -9,7 +9,8 @@ expo --version
 
 npm install
 
- *** Configurar .env
+ *** Configurar .env (en la capeta raiz del proyecto)
+ *** Agregar archivo google-services.json (en SmartRecycleAI\android\app\google-services.json)
 
 npx expo start
 
@@ -18,19 +19,7 @@ npx expo start
 - Puede que las versiones de expo sean muy nuevas y no estén soportadas en las tiendas Android/IOS, entonces mejor hacer un build
 
 ************************* OPCION 1: Build en la nube de expo
-npm install -g eas-cli
-eas login
-
-- Iniciar sesión
-
-eas build:configure
-eas build --profile development --platform android
-"Esto sube el codigo a los servidores de Expo y construye la APK en la nube. Tarda ~5-10 minutos. Al terminar te da un enlace para descargar e instalar la APK directamente en tu telefono Android."
-"Completar datos y rellenar"
-
-npx expo start --dev-client
-
-
+MALA IDEA
 ************************* OPCION 2: Build local
 
 echo $env:ANDROID_HOME
@@ -42,6 +31,11 @@ adb devices
 List of devices attached
 R58Txxxxxxx    device
 
-
 npx expo run:android
+
+npx expo start --android  
+
 npx expo start --dev-client
+
+-- SOLO SI BLOQUEA LA RED
+npx expo start --dev-client --tunnel
