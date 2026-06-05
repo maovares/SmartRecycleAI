@@ -32,7 +32,7 @@ export default function HomeScreen({ navigation }) {
       setProfile(p);
       setHistory(h);
       setEcoPoints(p.ecoPoints || 0);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   useFocusEffect(
@@ -59,7 +59,7 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.headerBg}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.greeting}>Hola, {firstName} 👋</Text>
+            <Text style={styles.greeting}>Hola, {firstName}</Text>
             <Text style={styles.subGreeting}>¡Sigamos reciclando!</Text>
           </View>
           {profile && <EcoPointsBadge points={profile.ecoPoints} large />}
