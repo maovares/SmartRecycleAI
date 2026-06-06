@@ -1,81 +1,14 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Linking, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, Linking, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import { fetchNearbyCenters } from '../services/apiService';
 
 const COLORS = {
   primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
   background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
 };
-
-const CENTERS = [
-  {
-    id: '1',
-    name: 'EcoRec Sabana',
-    address: 'Parque Metropolitano La Sabana, San José',
-    materials: ['PET', 'Aluminio', 'Vidrio', 'Papel'],
-    schedule: 'Lun–Vie 7am–4pm',
-    phone: '+506 2256-1234',
-    lat: 9.9356,
-    lng: -84.1019,
-  },
-  {
-    id: '2',
-    name: 'Centro Verde Desamparados',
-    address: 'Av. 8, Desamparados, San José',
-    materials: ['PET', 'Cartón', 'Papel', 'Aluminio'],
-    schedule: 'Lun–Sáb 6am–5pm',
-    phone: '+506 2259-5678',
-    lat: 9.8985,
-    lng: -84.0669,
-  },
-  {
-    id: '3',
-    name: 'ReciclaHeredia',
-    address: 'Mercado Central de Heredia, Heredia',
-    materials: ['Vidrio', 'PET', 'Aluminio'],
-    schedule: 'Mar–Sáb 8am–3pm',
-    phone: '+506 2261-9012',
-    lat: 9.9985,
-    lng: -84.1169,
-  },
-  {
-    id: '4',
-    name: 'Punto Limpio Alajuela',
-    address: 'Estadio Morera Soto, Alajuela',
-    materials: ['PET', 'Cartón', 'Vidrio', 'Papel', 'Aluminio'],
-    schedule: 'Lun–Vie 7am–5pm',
-    phone: '+506 2440-3456',
-    lat: 10.0162,
-    lng: -84.2141,
-  },
-  {
-    id: '5',
-    name: 'EcoAcopio Cartago',
-    address: 'Plaza Mayor, Cartago Centro',
-    materials: ['Cartón', 'Papel', 'Aluminio'],
-    schedule: 'Mié–Dom 8am–2pm',
-    phone: '+506 2552-7890',
-    lat: 9.8637,
-    lng: -83.9197,
-  },
-];
-
-const MATERIAL_COLOR = {
-  PET: '#4FC3F7', Aluminio: '#B0BEC5', Vidrio: '#A5D6A7',
-  Papel: '#FFCC80', Cartón: '#BCAAA4',
-};
-
-function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dlat = ((lat2 - lat1) * Math.PI) / 180;
-  const dlng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dlat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dlng / 2) ** 2;
-  return R * 2 * Math.asin(Math.sqrt(a));
-}
 
 function openNavigation(lat, lng, name) {
   const url = Platform.select({
@@ -85,74 +18,101 @@ function openNavigation(lat, lng, name) {
   Linking.openURL(url);
 }
 
-function darken(hex) {
-  const n = parseInt(hex.slice(1), 16);
-  const r = Math.max(0, (n >> 16) - 60);
-  const g = Math.max(0, ((n >> 8) & 0xff) - 60);
-  const b = Math.max(0, (n & 0xff) - 60);
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-}
-
 export default function CentersScreen() {
   const insets = useSafeAreaInsets();
-  const [centers, setCenters] = useState(CENTERS);
-  const [locationStatus, setLocationStatus] = useState('loading');
+  const [centers, setCenters] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [refreshing, setRefreshing] = useState(false);
   const [placeName, setPlaceName] = useState('');
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationStatus('denied');
-        return;
+  const loadCenters = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setStatus('loading');
+
+    const { status: permStatus } = await Location.requestForegroundPermissionsAsync();
+    if (permStatus !== 'granted') {
+      setStatus('denied');
+      return;
+    }
+
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = pos.coords;
+
+      const [geo, fetchedCenters] = await Promise.all([
+        Location.reverseGeocodeAsync({ latitude, longitude }),
+        fetchNearbyCenters(latitude, longitude),
+      ]);
+
+      if (geo[0]) {
+        const parts = [geo[0].district || geo[0].city, geo[0].subregion || geo[0].region].filter(Boolean);
+        setPlaceName(parts.join(', '));
       }
-      try {
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        const { latitude, longitude } = pos.coords;
-        const sorted = [...CENTERS]
-          .map(c => ({ ...c, distance_km: Math.round(haversine(latitude, longitude, c.lat, c.lng) * 10) / 10 }))
-          .sort((a, b) => a.distance_km - b.distance_km);
-        setCenters(sorted);
 
-        const [geo] = await Location.reverseGeocodeAsync({ latitude, longitude });
-        if (geo) {
-          const parts = [geo.district || geo.city, geo.subregion || geo.region].filter(Boolean);
-          setPlaceName(parts.join(', '));
-        }
-
-        setLocationStatus('ready');
-      } catch {
-        setLocationStatus('error');
-      }
-    })();
+      setCenters(fetchedCenters);
+      setStatus('ready');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
   }, []);
+
+  useEffect(() => { loadCenters(); }, [loadCenters]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadCenters(true);
+    setRefreshing(false);
+  }, [loadCenters]);
 
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingBottom: Math.max(32, insets.bottom + 16) }]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} tintColor={COLORS.primary} />}
     >
       <View style={styles.headerBg}>
         <Text style={styles.headerTitle}>Centros de acopio</Text>
         <View style={styles.headerSubRow}>
-          {locationStatus === 'loading' ? (
+          {status === 'loading' ? (
             <>
               <ActivityIndicator size="small" color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>  Obteniendo ubicación…</Text>
+              <Text style={styles.headerSub}>  Buscando centros cercanos…</Text>
             </>
-          ) : locationStatus === 'ready' ? (
+          ) : status === 'ready' ? (
             <>
               <Ionicons name="location" size={13} color="rgba(255,255,255,0.7)" />
               <Text style={styles.headerSub}>  {placeName || 'Tu ubicación'} · {centers.length} centros</Text>
             </>
-          ) : (
+          ) : status === 'denied' ? (
             <>
               <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>  Costa Rica · {centers.length} centros</Text>
+              <Text style={styles.headerSub}>  Permiso de ubicación requerido</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="warning-outline" size={13} color="rgba(255,255,255,0.7)" />
+              <Text style={styles.headerSub}>  Error al cargar centros</Text>
             </>
           )}
         </View>
       </View>
+
+      {status === 'ready' && centers.length === 0 && (
+        <View style={styles.emptyState}>
+          <Ionicons name="search-outline" size={48} color="#CCC" />
+          <Text style={styles.emptyText}>No se encontraron centros cercanos.</Text>
+          <Text style={styles.emptySubText}>Intentá ampliar el radio de búsqueda.</Text>
+        </View>
+      )}
+
+      {status === 'error' && (
+        <View style={styles.emptyState}>
+          <Ionicons name="cloud-offline-outline" size={48} color="#CCC" />
+          <Text style={styles.emptyText}>No se pudo cargar la información.</Text>
+          <Text style={styles.emptySubText}>{error}</Text>
+        </View>
+      )}
 
       {centers.map((center) => (
         <View key={center.id} style={styles.card}>
@@ -174,26 +134,17 @@ export default function CentersScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="time-outline" size={14} color="#888" />
             <Text style={styles.infoText}>{center.schedule}</Text>
-          </View>
-
-          <View style={styles.materialsRow}>
-            {center.materials.map((m) => (
-              <View key={m} style={[styles.matChip, { backgroundColor: (MATERIAL_COLOR[m] || COLORS.accent) + '33' }]}>
-                <Text style={[styles.matChipText, { color: MATERIAL_COLOR[m] ? darken(MATERIAL_COLOR[m]) : COLORS.primary }]}>
-                  {m}
+            {center.open_now != null && (
+              <View style={[styles.openBadge, { backgroundColor: center.open_now ? '#E8F5E9' : '#FFEBEE' }]}>
+                <Text style={[styles.openText, { color: center.open_now ? '#2E7D32' : '#C62828' }]}>
+                  {center.open_now ? 'Abierto' : 'Cerrado'}
                 </Text>
               </View>
-            ))}
+            )}
           </View>
 
           <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={styles.callBtn}
-              onPress={() => Linking.openURL(`tel:${center.phone}`)}
-            >
-              <Ionicons name="call-outline" size={16} color={COLORS.primary} />
-              <Text style={styles.callText}>{center.phone}</Text>
-            </TouchableOpacity>
+            <View style={{ flex: 1 }} />
             <TouchableOpacity
               style={styles.navBtn}
               onPress={() => openNavigation(center.lat, center.lng, center.name)}
@@ -214,6 +165,9 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: '800', color: '#FFF' },
   headerSubRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 },
+  emptyText: { fontSize: 16, fontWeight: '600', color: '#999', marginTop: 16, textAlign: 'center' },
+  emptySubText: { fontSize: 13, color: '#BBB', marginTop: 6, textAlign: 'center' },
   card: {
     backgroundColor: COLORS.card, marginHorizontal: 16, marginTop: 12,
     borderRadius: 16, padding: 16, elevation: 2,
@@ -225,16 +179,13 @@ const styles = StyleSheet.create({
   distBadge: { backgroundColor: COLORS.primary + '15', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   distText: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
   infoRow: { flexDirection: 'row', gap: 6, alignItems: 'center', marginBottom: 10 },
-  infoText: { fontSize: 12, color: '#666' },
-  materialsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  matChip: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  matChipText: { fontSize: 12, fontWeight: '600' },
+  infoText: { fontSize: 12, color: '#666', flex: 1 },
+  openBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
+  openText: { fontSize: 11, fontWeight: '700' },
   actionsRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center',
     borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 10,
   },
-  callBtn: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center' },
-  callText: { color: COLORS.primary, fontWeight: '600', fontSize: 13 },
   navBtn: {
     backgroundColor: COLORS.primary, borderRadius: 10,
     padding: 8, alignItems: 'center', justifyContent: 'center',

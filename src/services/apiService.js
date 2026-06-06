@@ -12,6 +12,16 @@ async function compressImage(uri) {
   return result.uri;
 }
 
+export async function fetchNearbyCenters(lat, lng) {
+  const url = `${BASE_URL}/centers/nearby?lat=${lat}&lng=${lng}`;
+  console.log('[API] GET', url);
+  const resp = await fetch(url);
+  const data = await resp.json();
+  console.log('[API] status:', resp.status, '| response:', JSON.stringify(data));
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${data?.detail ?? ''}`);
+  return data.centers || [];
+}
+
 export async function analyzeImage(imageUri, idToken, location) {
   const compressedUri = await compressImage(imageUri);
   const formData = new FormData();
