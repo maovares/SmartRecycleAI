@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Linking, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Linking, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -75,6 +75,14 @@ function haversine(lat1, lng1, lat2, lng2) {
     Math.sin(dlat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dlng / 2) ** 2;
   return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+function openNavigation(lat, lng, name) {
+  const url = Platform.select({
+    ios: `maps://?ll=${lat},${lng}&q=${encodeURIComponent(name)}`,
+    android: `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(name)})`,
+  });
+  Linking.openURL(url);
 }
 
 function darken(hex) {
@@ -178,13 +186,21 @@ export default function CentersScreen() {
             ))}
           </View>
 
-          <TouchableOpacity
-            style={styles.callBtn}
-            onPress={() => Linking.openURL(`tel:${center.phone}`)}
-          >
-            <Ionicons name="call-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.callText}>{center.phone}</Text>
-          </TouchableOpacity>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={styles.callBtn}
+              onPress={() => Linking.openURL(`tel:${center.phone}`)}
+            >
+              <Ionicons name="call-outline" size={16} color={COLORS.primary} />
+              <Text style={styles.callText}>{center.phone}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navBtn}
+              onPress={() => openNavigation(center.lat, center.lng, center.name)}
+            >
+              <Ionicons name="navigate" size={16} color="#FFF" />
+            </TouchableOpacity>
+          </View>
         </View>
       ))}
     </ScrollView>
@@ -213,9 +229,14 @@ const styles = StyleSheet.create({
   materialsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   matChip: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   matChipText: { fontSize: 12, fontWeight: '600' },
-  callBtn: {
-    flexDirection: 'row', gap: 6, alignItems: 'center',
+  actionsRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 10,
   },
+  callBtn: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center' },
   callText: { color: COLORS.primary, fontWeight: '600', fontSize: 13 },
+  navBtn: {
+    backgroundColor: COLORS.primary, borderRadius: 10,
+    padding: 8, alignItems: 'center', justifyContent: 'center',
+  },
 });
