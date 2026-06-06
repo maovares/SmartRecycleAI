@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D7A60"/>
+      <stop offset="100%" stop-color="#1DB983"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!--
+    Recycling arrows scaled to r=280 (scale factor 5.6 from logo icon r=50).
+    Arc start (220°): (-214.5, -179.8)  Arc end (320°): (214.5, -179.8)
+    Stroke-width scaled: 10 * 5.6 = 56
+  -->
+  <g transform="translate(512, 512)">
+    <!-- Arrow 1 — top -->
+    <path d="M -214.5,-179.8 A 280,280 0 0,1 214.5,-179.8"
+          fill="none" stroke="white" stroke-width="56" stroke-linecap="round"/>
+    <polygon points="214.5,-179.8 146.2,-217.3 189.3,-253.7" fill="white"/>
+
+    <!-- Arrow 2 — lower-right -->
+    <g transform="rotate(120)">
+      <path d="M -214.5,-179.8 A 280,280 0 0,1 214.5,-179.8"
+            fill="none" stroke="white" stroke-width="56" stroke-linecap="round"/>
+      <polygon points="214.5,-179.8 146.2,-217.3 189.3,-253.7" fill="white"/>
+    </g>
+
+    <!-- Arrow 3 — lower-left -->
+    <g transform="rotate(240)">
+      <path d="M -214.5,-179.8 A 280,280 0 0,1 214.5,-179.8"
+            fill="none" stroke="white" stroke-width="56" stroke-linecap="round"/>
+      <polygon points="214.5,-179.8 146.2,-217.3 189.3,-253.7" fill="white"/>
+    </g>
+  </g>
+
+  <!-- Leaf at center — path scaled 5.6× from logo icon -->
+  <path d="M512,411 C579,411 613,484 574,551 C540,618 422,602 422,523
+           C422,434 467,411 512,411 Z"
+        fill="#A8EDD5" opacity="0.92"/>
+  <line x1="512" y1="411" x2="501" y2="590"
+        stroke="#0D7A60" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- Sparkle dot -->
+  <circle cx="575" cy="417" r="28" fill="white" opacity="0.85"/>
+  <circle cx="575" cy="417" r="12" fill="#5DCAA5"/>
+</svg>

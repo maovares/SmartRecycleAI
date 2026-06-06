@@ -1,41 +1,87 @@
-node --version
+===============================================================
+  SmartRecycleAI — Setup & Run Guide
+===============================================================
+
+── PREREQUISITES ────────────────────────────────────────────
+
+node --version        (needs Node 18+)
 npm --version
 
 npm install -g expo-cli
 expo --version
 
- *** Instalar app Expo Go en el telefono (Android o IOS)
+── ANDROID SDK REQUIREMENTS ─────────────────────────────────
 
+Open Android Studio → SDK Manager:
 
-npm install
+  SDK Platforms tab:
+    ✔ Android API 36 (compileSdk = 36)
 
- *** Configurar .env (en la capeta raiz del proyecto)
- *** Agregar archivo google-services.json (en SmartRecycleAI\android\app\google-services.json)
+  SDK Tools tab → check "Show Package Details":
+    ✔ NDK (Side by side) → 27.1.12297006   ← REQUIRED (exact version)
+    ✔ Android SDK Build-Tools → 36.0.0
+    ✔ Android SDK Platform-Tools
 
-npx expo start
+  ADB on PATH (run in PowerShell each session, or add permanently):
+    $env:PATH += ";C:\Users\mrodr\AppData\Local\Android\Sdk\platform-tools"
+    adb --version
 
+── PROJECT SETUP ────────────────────────────────────────────
 
-**** NOTA:
-- Puede que las versiones de expo sean muy nuevas y no estén soportadas en las tiendas Android/IOS, entonces mejor hacer un build
+1. Install dependencies:
+     npm install
 
-************************* OPCION 1: Build en la nube de expo
-MALA IDEA
-************************* OPCION 2: Build local
+2. Configure environment variables:
+     Copy .env.example → .env  (in SmartRecycleAI root)
+     Fill in:
+       EXPO_PUBLIC_API_URL             (FastAPI backend URL)
+       EXPO_PUBLIC_FIREBASE_API_KEY
+       EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
+       EXPO_PUBLIC_FIREBASE_PROJECT_ID
+       EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET
+       EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+       EXPO_PUBLIC_FIREBASE_APP_ID
 
-echo $env:ANDROID_HOME
-adb --version
+3. Add Firebase config file:
+     Place google-services.json at:
+       SmartRecycleAI\android\app\google-services.json
+     (Download from Firebase Console → Project Settings → Your apps → Android)
 
-- Activar en android opciones depuracion
+── RUNNING THE APP ──────────────────────────────────────────
 
-adb devices
-List of devices attached
-R58Txxxxxxx    device
+OPTION A — Expo Go (quick dev, no native modules):
+  - Install "Expo Go" app on your phone
+  - npx expo start
+  - Scan QR code from Expo Go app
+  ⚠ May not work if Expo SDK version is too new for Expo Go
 
-npx expo run:android
+OPTION B — Local build (full native, RECOMMENDED):
+  - Enable USB Debugging on Android phone:
+      Settings → About phone → tap Build number 7 times
+      Settings → Developer options → USB Debugging ON
+  - Connect phone via USB
+  - adb devices    (should list your device, e.g. R58Txxxxxxx device)
+  - npx expo run:android
+    (first run takes several minutes — compiles native code)
 
-npx expo start --android  
+  After first build, to start JS only:
+    npx expo start --dev-client
 
-npx expo start --dev-client
+── TECH STACK VERSIONS ──────────────────────────────────────
 
--- SOLO SI BLOQUEA LA RED
-npx expo start --dev-client --tunnel
+  expo:                ~56.0.8
+  react-native:        0.85.3
+  react:               19.2.3
+  compileSdk:          36
+  minSdk:              24  (Android 7.0+)
+  targetSdk:           36
+  NDK:                 27.1.12297006
+  kotlin:              2.1.20
+
+── NOTES ────────────────────────────────────────────────────
+
+- Cloud builds (EAS Build) are NOT recommended for this project.
+- NDK must be installed via "NDK (Side by side)" — the standalone
+  NDK installer leaves an incomplete folder and breaks CMake builds.
+- Do NOT use `expo-cli` global commands for builds; use `npx expo`.
+- Expo SDK docs: https://docs.expo.dev/versions/v56.0.0/
