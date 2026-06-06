@@ -1,27 +1,30 @@
 import axios from 'axios';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export async function analyzeImage(imageUri, idToken) {
+async function compressImage(uri) {
+  const result = await ImageManipulator.manipulateAsync(
+    uri,
+    [{ resize: { width: 1080 } }],
+    { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+  );
+  return result.uri;
+}
+
+export async function analyzeImage(imageUri, idToken, location) {
+  const compressedUri = await compressImage(imageUri);
   const formData = new FormData();
-  const filename = imageUri.split('/').pop();
+  const filename = compressedUri.split('/').pop();
   const match = /\.(\w+)$/.exec(filename);
   const ext = (match ? match[1] : 'jpeg').toLowerCase().replace('jpg', 'jpeg');
   const type = `image/${ext}`;
 
-  formData.append('image', { uri: imageUri, name: filename, type });
-
-  console.log('=== POSTMAN DEBUG ===');
-  console.log('METHOD: POST');
-  console.log('URL:', `${BASE_URL}/ai/analyze-image`);
-  console.log('HEADERS:');
-  console.log('  Content-Type: multipart/form-data');
-  console.log('  Authorization: Bearer', idToken);
-  console.log('BODY (form-data):');
-  console.log('  image:', imageUri);
-  console.log('  filename:', filename);
-  console.log('  type:', type);
-  console.log('====================');
+  formData.append('image', { uri: compressedUri, name: filename, type });
+  if (location?.latitude != null && location?.longitude != null) {
+    formData.append('lat', String(location.latitude));
+    formData.append('lng', String(location.longitude));
+  }
 
   let response;
   try {

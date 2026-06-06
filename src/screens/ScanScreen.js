@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Alert, Image,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { analyzeImage } from '../services/apiService';
@@ -20,7 +21,18 @@ export default function ScanScreen({ navigation }) {
   const [facing, setFacing] = useState('back');
   const [analyzing, setAnalyzing] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [location, setLocation] = useState(null);
   const cameraRef = useRef(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setLocation(pos.coords);
+      }
+    })();
+  }, []);
 
   async function handleCapture() {
     if (!cameraRef.current) return;
@@ -53,7 +65,7 @@ export default function ScanScreen({ navigation }) {
     setAnalyzing(true);
     try {
       const token = await getIdToken();
-      const result = await analyzeImage(preview, token);
+      const result = await analyzeImage(preview, token, location);
       setPreview(null);
       navigation.navigate('Result', { result });
     } catch (err) {

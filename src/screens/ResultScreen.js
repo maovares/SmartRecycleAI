@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Animated, Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { saveRecycleHistory } from '../services/storageService';
@@ -15,6 +16,7 @@ const COLORS = {
 export default function ResultScreen({ navigation, route }) {
   const { result } = route.params;
   const { user, setEcoPoints } = useAuth();
+  const insets = useSafeAreaInsets();
   const pointsAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
 
@@ -35,7 +37,7 @@ export default function ResultScreen({ navigation, route }) {
   const recyclableLabel = result.recyclable ? '✅ Reciclable' : '❌ No reciclable';
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingBottom: Math.max(40, insets.bottom + 24) }]}>
       {/* Object & material */}
       <View style={styles.card}>
         <Text style={styles.objectName}>{result.object}</Text>
@@ -129,7 +131,7 @@ export default function ResultScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: 16 },
   card: {
     backgroundColor: COLORS.card, borderRadius: 16, padding: 16,
     marginBottom: 12, elevation: 2,
