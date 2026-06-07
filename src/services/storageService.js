@@ -11,6 +11,7 @@ import {
   limit,
   getDocs,
   increment,
+  writeBatch,
 } from '@react-native-firebase/firestore';
 
 const db = getFirestore();
@@ -68,4 +69,23 @@ export async function updateEcoPoints(uid, points) {
   await updateDoc(doc(db, 'users', uid), {
     ecoPoints: increment(points),
   });
+}
+
+export async function resetUserData(uid) {
+  await setDoc(doc(db, 'users', uid), {
+    uid,
+    ecoPoints: 0,
+    totalScans: 0,
+    totalCo2: 0,
+    materials: {},
+    createdAt: new Date().toISOString(),
+  });
+
+  const histRef = collection(db, 'users', uid, 'history');
+  const snap = await getDocs(histRef);
+  if (snap.docs.length > 0) {
+    const batch = writeBatch(db);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
 }
