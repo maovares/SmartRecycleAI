@@ -129,14 +129,14 @@ export default function ResultScreen({ navigation, route }) {
       <View style={styles.actionsRow}>
         <TouchableOpacity
           style={styles.secondaryBtn}
-          onPress={() => navigation.navigate('Centers')}
+          onPress={() => navigation.navigate('Main', { screen: 'Centers' })}
         >
           <Ionicons name="location-outline" size={18} color={COLORS.primary} />
           <Text style={styles.secondaryBtnText}>Ver centros</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => navigation.navigate('Scan')}
+          onPress={() => navigation.navigate('Main', { screen: 'Scan' })}
         >
           <Ionicons name="scan-outline" size={18} color="#FFF" />
           <Text style={styles.primaryBtnText}>Escanear otro</Text>

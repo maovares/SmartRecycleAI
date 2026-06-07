@@ -57,7 +57,7 @@ export default function ScanScreen({ navigation }) {
       const token = await getIdToken();
       const [result, centers] = await Promise.all([
         analyzeImage(preview, token),
-        coords ? fetchNearbyCenters(coords.latitude, coords.longitude) : Promise.resolve([]),
+        coords ? fetchNearbyCenters(coords.latitude, coords.longitude).catch(() => []) : Promise.resolve([]),
       ]);
       setPreview(null);
       navigation.navigate('Result', { result: { ...result, nearest_centers: centers.slice(0, 3) } });
