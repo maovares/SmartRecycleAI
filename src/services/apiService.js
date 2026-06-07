@@ -22,7 +22,7 @@ export async function fetchNearbyCenters(lat, lng) {
   return data.centers || [];
 }
 
-export async function analyzeImage(imageUri, idToken, location) {
+export async function analyzeImage(imageUri, idToken) {
   const t0 = Date.now();
   console.log('[API] analyzeImage — compressing...');
   const compressedUri = await compressImage(imageUri);
@@ -35,10 +35,6 @@ export async function analyzeImage(imageUri, idToken, location) {
   const type = `image/${ext}`;
 
   formData.append('image', { uri: compressedUri, name: filename, type });
-  if (location?.latitude != null && location?.longitude != null) {
-    formData.append('lat', String(location.latitude));
-    formData.append('lng', String(location.longitude));
-  }
 
   const t1 = Date.now();
   console.log('[API] POST /ai/analyze-image — sending request...');

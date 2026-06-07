@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
-import { analyzeImage } from '../services/apiService';
+import { analyzeImage, fetchNearbyCenters } from '../services/apiService';
 import { getIdToken } from '../services/authService';
 import LoadingOverlay from '../components/LoadingOverlay';
 
@@ -55,9 +55,12 @@ export default function ScanScreen({ navigation }) {
     setAnalyzing(true);
     try {
       const token = await getIdToken();
-      const result = await analyzeImage(preview, token, coords);
+      const [result, centers] = await Promise.all([
+        analyzeImage(preview, token),
+        coords ? fetchNearbyCenters(coords.latitude, coords.longitude) : Promise.resolve([]),
+      ]);
       setPreview(null);
-      navigation.navigate('Result', { result });
+      navigation.navigate('Result', { result: { ...result, nearest_centers: centers.slice(0, 3) } });
     } catch (err) {
       const msg = err.response?.data?.detail
         || (err.message === 'Aborted' || err.code === 'ECONNABORTED'

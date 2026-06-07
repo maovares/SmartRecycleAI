@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, Linking, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, Linking, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocation } from '../context/LocationContext';
@@ -10,12 +10,8 @@ const COLORS = {
   background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
 };
 
-function openNavigation(lat, lng, name) {
-  const url = Platform.select({
-    ios: `maps://?ll=${lat},${lng}&q=${encodeURIComponent(name)}`,
-    android: `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(name)})`,
-  });
-  Linking.openURL(url);
+function openNavigation(placeId) {
+  Linking.openURL(`https://maps.google.com/?q=place_id:${placeId}`);
 }
 
 export default function CentersScreen() {
@@ -133,7 +129,7 @@ export default function CentersScreen() {
             <View style={{ flex: 1 }} />
             <TouchableOpacity
               style={styles.navBtn}
-              onPress={() => openNavigation(center.lat, center.lng, center.name)}
+              onPress={() => openNavigation(center.id)}
             >
               <Ionicons name="navigate" size={16} color="#FFF" />
             </TouchableOpacity>

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Animated, Alert,
+  StyleSheet, Animated, Alert, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -92,19 +92,29 @@ export default function ResultScreen({ navigation, route }) {
         </View>
       </View>
 
-      {/* Nearest center */}
-      {result.nearest_center && (
+      {/* Nearest centers */}
+      {result.nearest_centers?.length > 0 && (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>
-            <Ionicons name="location-outline" size={18} /> Centro más cercano
+            <Ionicons name="location-outline" size={18} /> Centros cercanos
           </Text>
-          <View style={styles.centerRow}>
-            <Ionicons name="business-outline" size={22} color={COLORS.primary} />
-            <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={styles.centerName}>{result.nearest_center.name}</Text>
-              <Text style={styles.centerDist}>{result.nearest_center.distance_km} km de distancia</Text>
-            </View>
-          </View>
+          <Text style={styles.centerDisclaimer}>
+            Verifica que acepten {result.material} antes de visitar.
+          </Text>
+          {result.nearest_centers.map((center, i) => (
+            <TouchableOpacity
+              key={center.id}
+              style={[styles.centerRow, i > 0 && styles.centerRowBorder]}
+              onPress={() => Linking.openURL(`https://maps.google.com/?q=place_id:${center.id}`)}
+            >
+              <Ionicons name="business-outline" size={20} color={COLORS.primary} />
+              <View style={{ marginLeft: 12, flex: 1 }}>
+                <Text style={styles.centerName} numberOfLines={1}>{center.name}</Text>
+                <Text style={styles.centerDist}>{center.distance_km} km</Text>
+              </View>
+              <Ionicons name="open-outline" size={16} color="#AAA" />
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
@@ -165,9 +175,11 @@ const styles = StyleSheet.create({
   impactItem: { flex: 1, alignItems: 'center', paddingVertical: 8 },
   impactNum: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginTop: 4 },
   impactLabel: { fontSize: 12, color: '#888', marginTop: 2 },
-  centerRow: { flexDirection: 'row', alignItems: 'center' },
-  centerName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
-  centerDist: { fontSize: 13, color: '#888', marginTop: 2 },
+  centerDisclaimer: { fontSize: 12, color: '#888', fontStyle: 'italic', marginBottom: 12 },
+  centerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+  centerRowBorder: { borderTopWidth: 1, borderTopColor: '#F0F0F0' },
+  centerName: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  centerDist: { fontSize: 12, color: '#888', marginTop: 2 },
   actionsRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
   primaryBtn: {
     flex: 2, flexDirection: 'row', gap: 8, backgroundColor: COLORS.primary,
