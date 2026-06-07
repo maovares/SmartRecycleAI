@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, StyleSheet, Linking, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Location from 'expo-location';
+import { useLocation } from '../context/LocationContext';
 import { fetchNearbyCenters } from '../services/apiService';
 
 const COLORS = {
@@ -20,36 +20,18 @@ function openNavigation(lat, lng, name) {
 
 export default function CentersScreen() {
   const insets = useSafeAreaInsets();
+  const { coords, placeName, permissionGranted, refresh: refreshLocation } = useLocation();
   const [centers, setCenters] = useState([]);
   const [status, setStatus] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
-  const [placeName, setPlaceName] = useState('');
   const [error, setError] = useState('');
 
-  const loadCenters = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setStatus('loading');
-
-    const { status: permStatus } = await Location.requestForegroundPermissionsAsync();
-    if (permStatus !== 'granted') {
-      setStatus('denied');
-      return;
-    }
-
+  const loadCenters = useCallback(async (currentCoords) => {
+    if (!currentCoords) return;
+    setStatus('loading');
     try {
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = pos.coords;
-
-      const [geo, fetchedCenters] = await Promise.all([
-        Location.reverseGeocodeAsync({ latitude, longitude }),
-        fetchNearbyCenters(latitude, longitude),
-      ]);
-
-      if (geo[0]) {
-        const parts = [geo[0].district || geo[0].city, geo[0].subregion || geo[0].region].filter(Boolean);
-        setPlaceName(parts.join(', '));
-      }
-
-      setCenters(fetchedCenters);
+      const fetched = await fetchNearbyCenters(currentCoords.latitude, currentCoords.longitude);
+      setCenters(fetched);
       setStatus('ready');
     } catch (err) {
       setError(err.message);
@@ -57,13 +39,17 @@ export default function CentersScreen() {
     }
   }, []);
 
-  useEffect(() => { loadCenters(); }, [loadCenters]);
+  useEffect(() => {
+    if (permissionGranted === false) { setStatus('denied'); return; }
+    if (coords) loadCenters(coords);
+  }, [coords, permissionGranted, loadCenters]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadCenters(true);
+    const newCoords = await refreshLocation();
+    await loadCenters(newCoords ?? coords);
     setRefreshing(false);
-  }, [loadCenters]);
+  }, [refreshLocation, loadCenters, coords]);
 
   return (
     <ScrollView
