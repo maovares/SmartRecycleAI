@@ -106,9 +106,9 @@ export default function HomeScreen({ navigation }) {
                 size={28}
                 color={item.recyclable ? COLORS.secondary : '#E57373'}
               />
-              <View style={{ marginLeft: 12 }}>
-                <Text style={styles.historyObj}>{item.object}</Text>
-                <Text style={styles.historyMat}>{item.material}</Text>
+              <View style={{ marginLeft: 12, flexShrink: 1 }}>
+                <Text style={styles.historyObj} numberOfLines={2}>{item.object}</Text>
+                <Text style={styles.historyMat} numberOfLines={1}>{item.material}</Text>
               </View>
             </View>
             <View style={styles.historyRight}>
