@@ -9,6 +9,7 @@ import VerifyScreen from '../screens/VerifyScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ScanScreen from '../screens/ScanScreen';
 import ResultScreen from '../screens/ResultScreen';
+import HistoryScreen from '../screens/HistoryScreen';
 import CentersScreen from '../screens/CentersScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
@@ -68,6 +69,11 @@ export default function AppNavigator() {
             name="Result"
             component={ResultScreen}
             options={{ headerShown: true, title: 'Resultado', headerTintColor: '#0F6E56' }}
+          />
+          <Stack.Screen
+            name="History"
+            component={HistoryScreen}
+            options={{ headerShown: false }}
           />
         </>
       )}

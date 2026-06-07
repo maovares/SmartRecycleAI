@@ -68,11 +68,15 @@ export default function HomeScreen({ navigation }) {
 
       {/* Stats row */}
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { flex: 1, marginRight: 8 }]}>
+        <TouchableOpacity
+          style={[styles.statCard, { flex: 1, marginRight: 8 }]}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('History')}
+        >
           <Ionicons name="cube-outline" size={24} color={COLORS.primary} />
           <Text style={styles.statNum}>{profile?.totalScans ?? 0}</Text>
           <Text style={styles.statLabel}>Ítems reciclados</Text>
-        </View>
+        </TouchableOpacity>
         <View style={[styles.statCard, { flex: 1, marginLeft: 8 }]}>
           <Ionicons name="cloud-outline" size={24} color={COLORS.secondary} />
           <Text style={styles.statNum}>{co2Display} kg</Text>
@@ -99,7 +103,12 @@ export default function HomeScreen({ navigation }) {
         </View>
       ) : (
         history.map((item) => (
-          <View key={item.id} style={styles.historyCard}>
+          <TouchableOpacity
+            key={item.id}
+            style={styles.historyCard}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('Result', { result: item, fromHistory: true })}
+          >
             <View style={styles.historyLeft}>
               <Ionicons
                 name={item.recyclable ? 'checkmark-circle' : 'close-circle'}
@@ -117,7 +126,7 @@ export default function HomeScreen({ navigation }) {
                 {new Date(item.timestamp).toLocaleDateString('es-CR', { month: 'short', day: 'numeric' })}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))
       )}
     </ScrollView>

@@ -33,13 +33,15 @@ export async function getUserProfile(uid) {
 }
 
 export async function saveRecycleHistory(uid, result) {
+  const { nearest_centers, ...resultToSave } = result;
+
   const histRef = collection(db, 'users', uid, 'history');
   await addDoc(histRef, {
-    ...result,
+    ...resultToSave,
     timestamp: new Date().toISOString(),
   });
 
-  const materialKey = result.material?.replace(/[^a-zA-Z0-9]/g, '_') || 'unknown';
+  const materialKey = (result.material || 'unknown').replace(/[./]/g, '_');
   await updateDoc(doc(db, 'users', uid), {
     ecoPoints: increment(result.points || 0),
     totalScans: increment(1),
@@ -51,6 +53,13 @@ export async function saveRecycleHistory(uid, result) {
 export async function getRecentHistory(uid, count = 3) {
   const histRef = collection(db, 'users', uid, 'history');
   const q = query(histRef, orderBy('timestamp', 'desc'), limit(count));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getFullHistory(uid) {
+  const histRef = collection(db, 'users', uid, 'history');
+  const q = query(histRef, orderBy('timestamp', 'desc'), limit(50));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }

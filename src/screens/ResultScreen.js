@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Animated, Alert, Linking,
+  StyleSheet, Animated, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,11 +14,12 @@ const COLORS = {
 };
 
 export default function ResultScreen({ navigation, route }) {
-  const { result } = route.params;
+  const { result, fromHistory = false } = route.params;
   const { user, setEcoPoints } = useAuth();
   const insets = useSafeAreaInsets();
   const pointsAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
+  const saved = useRef(false);
 
   useEffect(() => {
     Animated.parallel([
@@ -26,7 +27,8 @@ export default function ResultScreen({ navigation, route }) {
       Animated.spring(scaleAnim, { toValue: 1, friction: 5, delay: 300, useNativeDriver: true }),
     ]).start();
 
-    if (user) {
+    if (!fromHistory && user && !saved.current) {
+      saved.current = true;
       saveRecycleHistory(user.uid, result)
         .then(() => setEcoPoints(prev => prev + (result.points || 0)))
         .catch(() => {});
@@ -92,7 +94,7 @@ export default function ResultScreen({ navigation, route }) {
         </View>
       </View>
 
-      {/* Nearest centers */}
+      {/* Nearest centers — only shown for fresh scans */}
       {result.nearest_centers?.length > 0 && (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>
@@ -126,22 +128,34 @@ export default function ResultScreen({ navigation, route }) {
       )}
 
       {/* Actions */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          style={styles.secondaryBtn}
-          onPress={() => navigation.navigate('Main', { screen: 'Centers' })}
-        >
-          <Ionicons name="location-outline" size={18} color={COLORS.primary} />
-          <Text style={styles.secondaryBtnText}>Ver centros</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={() => navigation.navigate('Main', { screen: 'Scan' })}
-        >
-          <Ionicons name="scan-outline" size={18} color="#FFF" />
-          <Text style={styles.primaryBtnText}>Escanear otro</Text>
-        </TouchableOpacity>
-      </View>
+      {fromHistory ? (
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={[styles.primaryBtn, { flex: 1 }]}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back-outline" size={18} color="#FFF" />
+            <Text style={styles.primaryBtnText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={() => navigation.navigate('Main', { screen: 'Centers' })}
+          >
+            <Ionicons name="location-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.secondaryBtnText}>Ver centros</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={() => navigation.navigate('Main', { screen: 'Scan' })}
+          >
+            <Ionicons name="scan-outline" size={18} color="#FFF" />
+            <Text style={styles.primaryBtnText}>Escanear otro</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </ScrollView>
   );
 }
