@@ -10,8 +10,12 @@ const COLORS = {
   background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
 };
 
-function openNavigation(placeId) {
-  Linking.openURL(`https://maps.google.com/?q=place_id:${placeId}`);
+function openNavigation(lat, lng) {
+  Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`);
+}
+
+function openDetail(placeId, name) {
+  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${placeId}`);
 }
 
 export default function CentersScreen() {
@@ -113,23 +117,27 @@ export default function CentersScreen() {
             )}
           </View>
 
-          <View style={styles.infoRow}>
-            <Ionicons name="time-outline" size={14} color="#888" />
-            <Text style={styles.infoText}>{center.schedule}</Text>
-            {center.open_now != null && (
+          {center.open_now != null && (
+            <View style={styles.infoRow}>
               <View style={[styles.openBadge, { backgroundColor: center.open_now ? '#E8F5E9' : '#FFEBEE' }]}>
                 <Text style={[styles.openText, { color: center.open_now ? '#2E7D32' : '#C62828' }]}>
                   {center.open_now ? 'Abierto' : 'Cerrado'}
                 </Text>
               </View>
-            )}
-          </View>
+            </View>
+          )}
 
           <View style={styles.actionsRow}>
             <View style={{ flex: 1 }} />
             <TouchableOpacity
-              style={styles.navBtn}
-              onPress={() => openNavigation(center.id)}
+              style={[styles.actionBtn, styles.actionBtnSecondary]}
+              onPress={() => openDetail(center.id, center.name)}
+            >
+              <Ionicons name="information-circle-outline" size={16} color={COLORS.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => openNavigation(center.lat, center.lng)}
             >
               <Ionicons name="navigate" size={16} color="#FFF" />
             </TouchableOpacity>
@@ -160,16 +168,22 @@ const styles = StyleSheet.create({
   address: { fontSize: 12, color: '#888', flex: 1 },
   distBadge: { backgroundColor: COLORS.primary + '15', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   distText: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
-  infoRow: { flexDirection: 'row', gap: 6, alignItems: 'center', marginBottom: 10 },
-  infoText: { fontSize: 12, color: '#666', flex: 1 },
-  openBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
+  infoRow: { marginBottom: 10 },
+  openBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
   openText: { fontSize: 11, fontWeight: '700' },
   actionsRow: {
     flexDirection: 'row', alignItems: 'center',
     borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 10,
   },
-  navBtn: {
+  actionsRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 10,
+  },
+  actionBtn: {
     backgroundColor: COLORS.primary, borderRadius: 10,
     padding: 8, alignItems: 'center', justifyContent: 'center',
+  },
+  actionBtnSecondary: {
+    backgroundColor: COLORS.primary + '15',
   },
 });

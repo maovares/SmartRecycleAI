@@ -102,18 +102,25 @@ export default function ResultScreen({ navigation, route }) {
             Verifica que acepten {result.material} antes de visitar.
           </Text>
           {result.nearest_centers.map((center, i) => (
-            <TouchableOpacity
-              key={center.id}
-              style={[styles.centerRow, i > 0 && styles.centerRowBorder]}
-              onPress={() => Linking.openURL(`https://maps.google.com/?q=place_id:${center.id}`)}
-            >
+            <View key={center.id} style={[styles.centerRow, i > 0 && styles.centerRowBorder]}>
               <Ionicons name="business-outline" size={20} color={COLORS.primary} />
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.centerName} numberOfLines={1}>{center.name}</Text>
                 <Text style={styles.centerDist}>{center.distance_km} km</Text>
               </View>
-              <Ionicons name="open-outline" size={16} color="#AAA" />
-            </TouchableOpacity>
+              <View style={styles.centerActions}>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(center.name)}&query_place_id=${center.id}`)}
+                >
+                  <Ionicons name="information-circle-outline" size={22} color={COLORS.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${center.lat},${center.lng}&travelmode=driving`)}
+                >
+                  <Ionicons name="navigate-outline" size={22} color={COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
           ))}
         </View>
       )}
@@ -180,6 +187,7 @@ const styles = StyleSheet.create({
   centerRowBorder: { borderTopWidth: 1, borderTopColor: '#F0F0F0' },
   centerName: { fontSize: 14, fontWeight: '600', color: COLORS.text },
   centerDist: { fontSize: 12, color: '#888', marginTop: 2 },
+  centerActions: { flexDirection: 'row', gap: 14, marginLeft: 8 },
   actionsRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
   primaryBtn: {
     flex: 2, flexDirection: 'row', gap: 8, backgroundColor: COLORS.primary,
