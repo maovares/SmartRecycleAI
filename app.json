@@ -27,7 +27,8 @@
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "expo-secure-store",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "./plugins/withAndroidApkName"
     ],
     "extra": {
       "eas": {
