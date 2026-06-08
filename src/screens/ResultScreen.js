@@ -108,6 +108,9 @@ export default function ResultScreen({ navigation, route }) {
               <Ionicons name="business-outline" size={20} color={COLORS.primary} />
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.centerName} numberOfLines={1}>{center.name}</Text>
+                {center.address ? (
+                  <Text style={styles.centerAddr} numberOfLines={1}>{center.address}</Text>
+                ) : null}
                 <Text style={styles.centerDist}>{center.distance_km} km</Text>
               </View>
               <View style={styles.centerActions}>
@@ -200,7 +203,8 @@ const styles = StyleSheet.create({
   centerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   centerRowBorder: { borderTopWidth: 1, borderTopColor: '#F0F0F0' },
   centerName: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  centerDist: { fontSize: 12, color: '#888', marginTop: 2 },
+  centerAddr: { fontSize: 11, color: '#999', marginTop: 1 },
+  centerDist: { fontSize: 12, color: COLORS.primary, fontWeight: '600', marginTop: 2 },
   centerActions: { flexDirection: 'row', gap: 14, marginLeft: 8 },
   actionsRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
   primaryBtn: {

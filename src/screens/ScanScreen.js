@@ -91,7 +91,6 @@ export default function ScanScreen({ navigation }) {
   if (preview) {
     return (
       <View style={styles.screen}>
-        {analyzing && <LoadingOverlay />}
         <Image source={{ uri: preview }} style={styles.previewImage} resizeMode="cover" />
         <View style={styles.previewOverlay}>
           <Text style={styles.previewHint}>¿Usar esta imagen?</Text>
@@ -106,6 +105,7 @@ export default function ScanScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
+        {analyzing && <LoadingOverlay />}
       </View>
     );
   }
