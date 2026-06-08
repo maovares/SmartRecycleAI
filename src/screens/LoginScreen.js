@@ -48,8 +48,15 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Ionicons name="leaf" size={56} color={COLORS.accent} />
           <Text style={styles.title}>Smart Recycle AI</Text>
@@ -108,7 +115,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.primary },
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  container: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingVertical: 48 },
   header: { alignItems: 'center', marginBottom: 32 },
   title: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', marginTop: 12 },
   subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
