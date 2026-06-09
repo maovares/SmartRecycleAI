@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as Location from 'expo-location';
+import { fetchNearbyCenters } from '../services/apiService';
 
 const LocationContext = createContext(null);
 
@@ -19,6 +20,7 @@ export function LocationProvider({ children }) {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const { latitude, longitude } = pos.coords;
       setCoords({ latitude, longitude });
+      fetchNearbyCenters(latitude, longitude).catch(() => {});
 
       const geo = await Location.reverseGeocodeAsync({ latitude, longitude });
       if (geo[0]) {
