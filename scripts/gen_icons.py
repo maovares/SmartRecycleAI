@@ -9,8 +9,8 @@ from PIL import Image, ImageDraw
 BG_TOP = (34,  84,  61, 255)   # #22543D  (slightly lighter top)
 BG_BOT = (27,  67,  50, 255)   # #1B4332  (brand forest green)
 WHITE  = (255, 255, 255, 255)
-AMBER  = (193, 122,  58, 255)  # #C17A3A
-AMBER2 = (220, 155,  85, 200)  # highlight
+AMBER  = (240, 112,  88, 255)  # #F07058 coral
+AMBER2 = (255, 160, 140, 200)  # highlight
 CLEAR  = (  0,   0,   0,   0)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

@@ -3,41 +3,45 @@
 
 // ── Colors ──────────────────────────────────────────────────────────────────
 export const colors = {
-  // Brand greens — selva costarricense, no menta tech
-  forest:    '#1B4332',   // primario: verde selva oscuro
-  canopy:    '#2D6A4F',   // secundario: dosel
-  sage:      '#74A689',   // acento verde desaturado
-  sageFaint: '#EBF2EE',   // fondo de badges verdes
+  // Brand greens
+  // forest: sin cambio — ancla oscura necesaria para headers con buen contraste
+  // canopy/sage: más vibrantes y luminosos que la paleta anterior
+  forest:    '#1B4332',   // primario: verde selva (sin cambio)
+  canopy:    '#2A7850',   // secundario: más vivo que #2D6A4F (contraste 5:1 en blanco ✓)
+  sage:      '#62B88E',   // acento verde: más saturado y fresco que #74A689
+  sageFaint: '#E3F4EC',   // fondo de badges: tint más limpio
 
-  // Action amber — cálido, terroso, diferencia acción de navegación
-  amber:      '#C17A3A',
-  amberDark:  '#A3612A',
-  amberLight: '#F5E6D3',
-  amberFaint: '#FBF3EB',
+  // Accent coral — reemplaza el amber terroso (#C17A3A) con coral moderno
+  // Tendencia dominante 2024 en apps lifestyle/eco para audiencia joven
+  amber:      '#F07058',  // coral vivo  (antes naranja-café #C17A3A)
+  amberDark:  '#D35640',  // coral oscuro (antes #A3612A)
+  amberLight: '#FDE8E2',  // fondo coral suave (antes #F5E6D3)
+  amberFaint: '#FFF2EE',  // fondo coral muy suave (antes #FBF3EB)
 
-  // Warm neutrals — papel sin blanquear, no gris frío
-  bark:     '#F7F4EF',   // background de toda la app
-  surface:  '#FFFFFF',   // cards (blanco solo aquí)
-  stone50:  '#FAF8F5',
-  stone100: '#EDE8E1',   // bordes, separadores
-  stone200: '#DDD5CA',   // disabled, placeholder border
-  stone400: '#A09585',   // texto terciario, iconos inactivos
-  stone600: '#6B5F52',   // texto secundario
-  ink:      '#1C1611',   // texto principal — negro cálido
+  // Neutrals — derivados del verde primario (teal-gray, no brown-gray)
+  // Refactoring UI: los grises deben heredar el hue del color primario
+  bark:     '#F3F6F4',   // background: tinte verde-gris sutil (antes beige-cálido)
+  surface:  '#FFFFFF',
+  stone50:  '#F7FAF8',   // antes #FAF8F5
+  stone100: '#DCE9E4',   // bordes: notablemente más frío (antes #EDE8E1)
+  stone200: '#C6D8D2',   // placeholder border (antes #DDD5CA)
+  stone400: '#82A09A',   // texto terciario / iconos inactivos (antes marrón #A09585)
+  stone600: '#4C6A63',   // texto secundario (antes marrón #6B5F52)
+  ink:      '#111D1A',   // texto principal: verde-negro (antes café-negro #1C1611)
 
-  // Semantic — derivados de la paleta, sin Material Design genérico
-  successBg:   '#E6F0EB',
+  // Semantic — alineados con la nueva paleta
+  successBg:   '#E3F2EB',
   successText: '#1B4332',
-  errorBg:     '#F5E8E6',
-  errorText:   '#9B3A2A',
-  warningBg:   '#F5E6D3',
-  warningText: '#A0611A',
+  errorBg:     '#FDE8E2',
+  errorText:   '#A83222',
+  warningBg:   '#FEF0E6',
+  warningText: '#9E5010',
 
   // Utility
   white:       '#FFFFFF',
   transparent: 'transparent',
-  overlay:     'rgba(28, 22, 17, 0.45)',
-  overlayDark: 'rgba(28, 22, 17, 0.70)',
+  overlay:     'rgba(17, 29, 26, 0.45)',   // verde-negro (antes marrón rgba(28,22,17))
+  overlayDark: 'rgba(17, 29, 26, 0.72)',
 };
 
 // ── Typography ───────────────────────────────────────────────────────────────
@@ -82,7 +86,7 @@ export const radius = {
 };
 
 // ── Shadows ──────────────────────────────────────────────────────────────────
-// shadowColor usa el primario, no negro genérico
+// shadowColor basado en el primario, no negro genérico
 export const shadow = {
   sm: {
     shadowColor: '#1B4332',

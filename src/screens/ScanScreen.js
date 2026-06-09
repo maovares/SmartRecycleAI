@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   previewImage: { flex: 1 },
   previewOverlay: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(28,22,17,0.72)',
+    backgroundColor: colors.overlayDark,
     padding: space.xl,
     paddingBottom: 40,
   },

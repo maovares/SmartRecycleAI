@@ -39,7 +39,7 @@ export default function LoadingOverlay() {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(28,22,17,0.45)',
+    backgroundColor: colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
     gap: space.sm,
-    backgroundColor: 'rgba(28,22,17,0.90)',
+    backgroundColor: 'rgba(17,29,26,0.92)',
     paddingHorizontal: space.xxl,
     paddingVertical: space.xl,
     borderRadius: radius.lg,
