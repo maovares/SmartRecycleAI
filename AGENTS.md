@@ -80,6 +80,36 @@ On the device:
 
 ---
 
+# Regenerar Assets (íconos y splash)
+
+Los PNGs en `assets/` se generan desde `assets/icon.svg` usando el script `scripts/generate-assets.js`.
+
+**Cuándo regenerar:**
+- Se modificó `assets/icon.svg`
+- Se necesita un nuevo tamaño o variante de ícono
+
+```powershell
+cd C:\SmartRecycle\SmartRecycleAI
+node scripts/generate-assets.js
+```
+
+Esto sobreescribe los seis archivos:
+
+| Archivo | Tamaño | Uso |
+|---|---|---|
+| `assets/icon.png` | 1024×1024 | iOS icon, Android fallback |
+| `assets/splash-icon.png` | 1024×1024 | Pantalla de splash |
+| `assets/favicon.png` | 48×48 | Web |
+| `assets/android-icon-foreground.png` | 1024×1024 | Adaptive icon foreground |
+| `assets/android-icon-background.png` | 1024×1024 | Adaptive icon fondo `#1B4332` |
+| `assets/android-icon-monochrome.png` | 1024×1024 | Android 13+ theming |
+
+**Dependencia:** `@resvg/resvg-js` (devDependency). Si no está instalada: `npm install`.
+
+Después de regenerar, hacer un prebuild si cambió `icon.png` (Expo lo copia al bundle nativo).
+
+---
+
 # Verify Device is Connected
 
 ```powershell
