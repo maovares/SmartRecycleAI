@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocation } from '../context/LocationContext';
-import { fetchNearbyCenters } from '../services/apiService';
+import { fetchNearbyCenters, getStaleCenters } from '../services/apiService';
 import { colors, font, size, space, radius, shadow } from '../theme';
 
 function openNavigation(lat, lng) {
@@ -26,9 +26,23 @@ export default function CentersScreen() {
 
   const loadCenters = useCallback(async (currentCoords) => {
     if (!currentCoords) return;
+    const { latitude, longitude } = currentCoords;
+
+    // SWR: if stale data exists show it immediately, refresh silently in background.
+    const stale = getStaleCenters(latitude, longitude);
+    if (stale) {
+      setCenters(stale);
+      setStatus('ready');
+      fetchNearbyCenters(latitude, longitude)
+        .then(fresh => setCenters(fresh))
+        .catch(() => {});
+      return;
+    }
+
+    // No cache at all: show spinner and wait.
     setStatus('loading');
     try {
-      const fetched = await fetchNearbyCenters(currentCoords.latitude, currentCoords.longitude);
+      const fetched = await fetchNearbyCenters(latitude, longitude);
       setCenters(fetched);
       setStatus('ready');
     } catch (err) {
