@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, Modal, TextInput, Image,
+  ActivityIndicator, Modal, TextInput, Image,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, resetUserData, updateUserPhoto, updateUserProfileFields } from '../services/storageService';
 import { logout, updateUserDisplayName } from '../services/authService';
+import { useModal } from '../context/ModalContext';
 import { colors, font, size, space, radius, shadow } from '../theme';
 
 const LEVELS = [
@@ -75,6 +76,7 @@ function formatMonth(isoStr) {
 
 export default function ProfileScreen() {
   const { user, setEcoPoints, refreshUser } = useAuth();
+  const { showAlert, showConfirm, showActions } = useModal();
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -117,7 +119,7 @@ export default function ProfileScreen() {
 
   async function handleSaveEdit() {
     if (!editName.trim()) {
-      Alert.alert('Error', 'El nombre no puede estar vacío.');
+      showAlert('Nombre requerido', 'Ingresa al menos un nombre para continuar.', 'info');
       return;
     }
     setSaving(true);
@@ -135,7 +137,7 @@ export default function ProfileScreen() {
       setProfile(fresh);
       setEditOpen(false);
     } catch (_) {
-      Alert.alert('Error', 'No se pudo guardar el perfil.');
+      showAlert('No se guardaron los cambios', 'Revisa tu conexión e intenta de nuevo.', 'error');
     } finally {
       setSaving(false);
     }
@@ -152,70 +154,58 @@ export default function ProfileScreen() {
   }
 
   function handlePhotoOptions() {
-    Alert.alert('Cambiar foto', '', [
+    showActions('Cambiar foto', [
       {
-        text: 'Tomar foto',
+        label: 'Tomar foto',
+        icon: 'camera-outline',
         onPress: async () => {
           const { status } = await ImagePicker.requestCameraPermissionsAsync();
           if (status !== 'granted') {
-            Alert.alert('Permiso requerido', 'Necesitamos acceso a la cámara.');
+            showAlert('Sin acceso a la cámara', 'Permite el acceso en los ajustes de tu dispositivo para tomar una foto.', 'error');
             return;
           }
-          const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-          });
+          const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 1 });
           if (!result.canceled && result.assets[0]) await processPickedImage(result.assets[0].uri);
         },
       },
       {
-        text: 'Elegir de galería',
+        label: 'Elegir de galería',
+        icon: 'images-outline',
         onPress: async () => {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') {
-            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería.');
+            showAlert('Sin acceso a la galería', 'Permite el acceso en los ajustes de tu dispositivo para elegir una foto.', 'error');
             return;
           }
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-          });
+          const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 1 });
           if (!result.canceled && result.assets[0]) await processPickedImage(result.assets[0].uri);
         },
       },
-      { text: 'Cancelar', style: 'cancel' },
+      { label: 'Cancelar', cancel: true },
     ]);
   }
 
   function handleReset() {
     setMenuOpen(false);
-    Alert.alert(
-      'Limpiar datos',
-      'Se eliminarán todos los escaneos y estadísticas. Esta acción no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Limpiar todo',
-          style: 'destructive',
-          onPress: async () => {
-            setResetting(true);
-            try {
-              await resetUserData(user.uid);
-              const fresh = await getUserProfile(user.uid);
-              setProfile(fresh);
-              setEcoPoints(0);
-            } catch (_) {
-              Alert.alert('Error', 'No se pudieron limpiar los datos.');
-            } finally {
-              setResetting(false);
-            }
-          },
-        },
-      ]
-    );
+    showConfirm({
+      title: '¿Borrar todo el progreso?',
+      message: 'Se eliminarán tus escaneos, estadísticas y EcoPoints. Esta acción no se puede deshacer.',
+      confirmLabel: 'Sí, borrar',
+      destructive: true,
+      onConfirm: async () => {
+        setResetting(true);
+        try {
+          await resetUserData(user.uid);
+          const fresh = await getUserProfile(user.uid);
+          setProfile(fresh);
+          setEcoPoints(0);
+        } catch (_) {
+          showAlert('No se pudo limpiar', 'Revisa tu conexión e intenta de nuevo.', 'error');
+        } finally {
+          setResetting(false);
+        }
+      },
+    });
   }
 
   if (loading) {

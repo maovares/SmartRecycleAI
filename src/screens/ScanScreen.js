@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Alert, Image,
+  View, Text, TouchableOpacity, StyleSheet, Image,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocation } from '../context/LocationContext';
 import { analyzeImage, fetchNearbyCenters } from '../services/apiService';
 import { getUserIdToken } from '../services/authService';
+import { useModal } from '../context/ModalContext';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { colors, font, size, space, radius } from '../theme';
 
@@ -18,6 +19,7 @@ const ZOOM_LEVELS = [
 ];
 
 export default function ScanScreen({ navigation }) {
+  const { showAlert } = useModal();
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState('back');
   const [analyzing, setAnalyzing] = useState(false);
@@ -40,14 +42,14 @@ export default function ScanScreen({ navigation }) {
       setPreview(photo.uri);
       prefetchCenters(coords);
     } catch (err) {
-      Alert.alert('Error', 'No se pudo capturar la foto.');
+      showAlert('No se pudo capturar', 'Vuelve a intentarlo. Si el problema persiste, reinicia la cámara.', 'error');
     }
   }
 
   async function handleGallery() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería.');
+      showAlert('Sin acceso a la galería', 'Permite el acceso en los ajustes de tu dispositivo para elegir una foto.', 'error');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -82,7 +84,7 @@ export default function ScanScreen({ navigation }) {
           ? 'El servidor tardó demasiado. Intenta de nuevo.'
           : err.message) ||
         'No se pudo analizar la imagen.';
-      Alert.alert('Error', msg);
+      showAlert('No pudimos analizar', msg, 'error');
     } finally {
       setAnalyzing(false);
     }

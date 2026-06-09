@@ -28,6 +28,7 @@ export async function getUserProfile(uid) {
     totalCo2: 0,
     totalWater: 0,
     recyclableCount: 0,
+    recyclingFrequency: null,
     materials: {},
     createdAt: new Date().toISOString(),
   };
@@ -83,7 +84,7 @@ export async function updateUserProfileFields(uid, fields) {
   await updateDoc(doc(db, 'users', uid), fields);
 }
 
-export async function resetUserData(uid) {
+export async function resetUserData(uid, recyclingFrequency = null) {
   await setDoc(doc(db, 'users', uid), {
     uid,
     ecoPoints: 0,
@@ -91,6 +92,7 @@ export async function resetUserData(uid) {
     totalCo2: 0,
     totalWater: 0,
     recyclableCount: 0,
+    recyclingFrequency,
     materials: {},
     createdAt: new Date().toISOString(),
   });

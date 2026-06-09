@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { resendVerification, checkEmailVerified, logout } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { useModal } from '../context/ModalContext';
 import { colors, font, size, space, radius, shadow } from '../theme';
 
 export default function VerifyScreen() {
   const { user } = useAuth();
+  const { showAlert } = useModal();
   const [checking, setChecking] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -14,9 +16,9 @@ export default function VerifyScreen() {
     setSending(true);
     try {
       await resendVerification();
-      Alert.alert('Enviado', 'Correo de verificación reenviado. Revisa tu bandeja de entrada.');
+      showAlert('Correo enviado', 'Revisa tu bandeja de entrada y toca el enlace para activar tu cuenta.', 'success');
     } catch (err) {
-      Alert.alert('Error', err.message);
+      showAlert('No se pudo reenviar', 'Intenta de nuevo en un momento. Si el problema persiste, cierra sesión y vuelve a registrarte.', 'error');
     } finally {
       setSending(false);
     }
@@ -27,10 +29,10 @@ export default function VerifyScreen() {
     try {
       const verified = await checkEmailVerified();
       if (!verified) {
-        Alert.alert('Aún no verificado', 'No hemos podido confirmar tu verificación. Revisa tu correo.');
+        showAlert('Aún no verificado', 'Todavía no detectamos la verificación. Abre el enlace del correo y vuelve a intentarlo.', 'info');
       }
     } catch (err) {
-      Alert.alert('Error', err.message);
+      showAlert('Algo salió mal', 'No pudimos comprobar tu estado. Intenta de nuevo en un momento.', 'error');
     } finally {
       setChecking(false);
     }

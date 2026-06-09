@@ -13,6 +13,7 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from './src/context/AuthContext';
 import { LocationProvider } from './src/context/LocationContext';
+import { ModalProvider } from './src/context/ModalContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync();
@@ -39,10 +40,12 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <LocationProvider>
-          <NavigationContainer>
-            <StatusBar style="light" backgroundColor="#1B4332" />
-            <AppNavigator />
-          </NavigationContainer>
+          <ModalProvider>
+            <NavigationContainer>
+              <StatusBar style="light" backgroundColor="#1B4332" />
+              <AppNavigator />
+            </NavigationContainer>
+          </ModalProvider>
         </LocationProvider>
       </AuthProvider>
     </SafeAreaProvider>
