@@ -26,6 +26,8 @@ export async function getUserProfile(uid) {
     ecoPoints: 0,
     totalScans: 0,
     totalCo2: 0,
+    totalWater: 0,
+    recyclableCount: 0,
     materials: {},
     createdAt: new Date().toISOString(),
   };
@@ -47,6 +49,8 @@ export async function saveRecycleHistory(uid, result) {
     ecoPoints: increment(result.points || 0),
     totalScans: increment(1),
     totalCo2: increment(result.impact?.co2_kg || 0),
+    totalWater: increment(result.impact?.water_l || 0),
+    recyclableCount: increment(result.recyclable ? 1 : 0),
     [`materials.${materialKey}`]: increment(1),
   });
 }
@@ -77,6 +81,8 @@ export async function resetUserData(uid) {
     ecoPoints: 0,
     totalScans: 0,
     totalCo2: 0,
+    totalWater: 0,
+    recyclableCount: 0,
     materials: {},
     createdAt: new Date().toISOString(),
   });
