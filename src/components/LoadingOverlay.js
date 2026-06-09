@@ -14,7 +14,12 @@ export default function LoadingOverlay() {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setIdx(i => (i + 1) % STEPS.length), 2800);
+    const id = setInterval(() => {
+      setIdx(i => {
+        if (i >= STEPS.length - 1) { clearInterval(id); return i; }
+        return i + 1;
+      });
+    }, 2800);
     return () => clearInterval(id);
   }, []);
 

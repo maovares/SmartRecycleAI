@@ -5,18 +5,24 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 import { analyzeImage, fetchNearbyCenters } from '../services/apiService';
 import { getIdToken } from '../services/authService';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { colors, font, size, space, radius } from '../theme';
 
+const ZOOM_LEVELS = [
+  { label: '1×', value: 0 },
+  { label: '2×', value: 0.25 },
+  { label: '3×', value: 0.45 },
+];
+
 export default function ScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState('back');
   const [analyzing, setAnalyzing] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [zoomIdx, setZoomIdx] = useState(0);
   const cameraRef = useRef(null);
   const centersPrefetchRef = useRef(null);
   const { coords } = useLocation();
@@ -128,15 +134,32 @@ export default function ScanScreen({ navigation }) {
     );
   }
 
+  const currentZoom = ZOOM_LEVELS[zoomIdx];
+
   return (
     <View style={styles.screen}>
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing={facing} />
+      {/* flex: 1 instead of absoluteFillObject fixes black preview on some Android devices */}
+      <CameraView
+        ref={cameraRef}
+        style={{ flex: 1 }}
+        facing={facing}
+        zoom={currentZoom.value}
+      />
 
       <View style={styles.guideFrame} />
 
       <View style={styles.topBar}>
         <Text style={styles.topBarText}>Centra el residuo en el marco</Text>
       </View>
+
+      {/* Zoom pill — tap to cycle through presets */}
+      <TouchableOpacity
+        style={styles.zoomPill}
+        onPress={() => setZoomIdx(i => (i + 1) % ZOOM_LEVELS.length)}
+        activeOpacity={0.75}
+      >
+        <Text style={styles.zoomLabel}>{currentZoom.label}</Text>
+      </TouchableOpacity>
 
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.sideBtn} onPress={handleGallery}>
@@ -178,6 +201,25 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     overflow: 'hidden',
   },
+
+  zoomPill: {
+    position: 'absolute',
+    bottom: 130,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  zoomLabel: {
+    fontFamily: font.bold,
+    fontSize: size.sm,
+    color: colors.white,
+    letterSpacing: 0.5,
+  },
+
   bottomBar: {
     position: 'absolute', bottom: 40, left: 0, right: 0,
     flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
