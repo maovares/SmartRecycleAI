@@ -79,6 +79,10 @@ export async function updateUserPhoto(uid, photoBase64) {
   await updateDoc(doc(db, 'users', uid), { photoBase64 });
 }
 
+export async function updateUserProfileFields(uid, fields) {
+  await updateDoc(doc(db, 'users', uid), fields);
+}
+
 export async function resetUserData(uid) {
   await setDoc(doc(db, 'users', uid), {
     uid,

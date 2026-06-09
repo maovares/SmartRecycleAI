@@ -148,6 +148,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.forest,
     paddingBottom: space.xl,
     paddingHorizontal: space.xl,
+    borderBottomWidth: 3,
+    borderBottomColor: colors.amber,
   },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   greetingWrap: { flex: 1, marginRight: space.md },
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
     ...shadow.sm,
   },
   statCardLeft: { borderBottomWidth: 2, borderBottomColor: colors.forest },
-  statCardRight: { borderBottomWidth: 2, borderBottomColor: colors.sage },
+  statCardRight: { borderBottomWidth: 2, borderBottomColor: colors.amber },
   statNum: {
     fontFamily: font.extrabold,
     fontSize: size.xl,
@@ -263,6 +265,6 @@ const styles = StyleSheet.create({
   historyObj: { fontFamily: font.semibold, fontSize: size.base, color: colors.ink },
   historyMat: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone400, marginTop: 2 },
   historyRight: { alignItems: 'flex-end' },
-  historyPts: { fontFamily: font.bold, fontSize: size.base, color: colors.forest },
+  historyPts: { fontFamily: font.bold, fontSize: size.base, color: colors.amber },
   historyDate: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, marginTop: 2 },
 });

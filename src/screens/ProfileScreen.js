@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile, resetUserData, updateUserPhoto } from '../services/storageService';
+import { getUserProfile, resetUserData, updateUserPhoto, updateUserProfileFields } from '../services/storageService';
 import { logout, updateUserDisplayName } from '../services/authService';
 import { colors, font, size, space, radius, shadow } from '../theme';
 
@@ -88,8 +88,10 @@ export default function ProfileScreen() {
   const [editPhotoUri, setEditPhotoUri] = useState(null);
   const [editPhotoBase64, setEditPhotoBase64] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [localDisplayName, setLocalDisplayName] = useState(null);
 
-  const initials = (user?.displayName || user?.email || 'U')
+  const displayName = localDisplayName ?? profile?.displayName ?? user?.displayName;
+  const initials = (displayName || user?.email || 'U')
     .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   useFocusEffect(
@@ -103,33 +105,14 @@ export default function ProfileScreen() {
   );
 
   function openEdit() {
-    setEditName(user?.displayName || user?.email?.split('@')[0] || '');
+    const name = [localDisplayName, profile?.displayName, user?.displayName]
+      .find(v => v != null && v.trim() !== '')
+      ?? user?.email?.split('@')[0]
+      ?? '';
+    setEditName(name);
     setEditPhotoUri(null);
     setEditPhotoBase64(null);
     setEditOpen(true);
-  }
-
-  async function handlePickPhoto() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled && result.assets[0]) {
-      const manipulated = await ImageManipulator.manipulateAsync(
-        result.assets[0].uri,
-        [{ resize: { width: 240, height: 240 } }],
-        { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG, base64: true }
-      );
-      setEditPhotoUri(manipulated.uri);
-      setEditPhotoBase64(manipulated.base64);
-    }
   }
 
   async function handleSaveEdit() {
@@ -139,23 +122,72 @@ export default function ProfileScreen() {
     }
     setSaving(true);
     try {
-      const promises = [];
-      if (editName.trim() !== (user?.displayName || '')) {
-        promises.push(updateUserDisplayName(editName.trim()));
-      }
+      const promises = [updateUserDisplayName(editName.trim())];
+      const firestoreFields = { displayName: editName.trim() };
       if (editPhotoBase64) {
-        promises.push(updateUserPhoto(user.uid, editPhotoBase64));
+        firestoreFields.photoBase64 = editPhotoBase64;
       }
+      promises.push(updateUserProfileFields(user.uid, firestoreFields));
       await Promise.all(promises);
       refreshUser();
+      setLocalDisplayName(editName.trim());
       const fresh = await getUserProfile(user.uid);
-      setProfile({ ...fresh, photoBase64: editPhotoBase64 || fresh.photoBase64 });
+      setProfile(fresh);
       setEditOpen(false);
     } catch (_) {
       Alert.alert('Error', 'No se pudo guardar el perfil.');
     } finally {
       setSaving(false);
     }
+  }
+
+  async function processPickedImage(uri) {
+    const manipulated = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 240, height: 240 } }],
+      { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+    );
+    setEditPhotoUri(manipulated.uri);
+    setEditPhotoBase64(manipulated.base64);
+  }
+
+  function handlePhotoOptions() {
+    Alert.alert('Cambiar foto', '', [
+      {
+        text: 'Tomar foto',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permiso requerido', 'Necesitamos acceso a la cámara.');
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+          });
+          if (!result.canceled && result.assets[0]) await processPickedImage(result.assets[0].uri);
+        },
+      },
+      {
+        text: 'Elegir de galería',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería.');
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+          });
+          if (!result.canceled && result.assets[0]) await processPickedImage(result.assets[0].uri);
+        },
+      },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
   }
 
   function handleReset() {
@@ -252,7 +284,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.name}>{user?.displayName || user?.email?.split('@')[0]}</Text>
+          <Text style={styles.name}>{displayName || user?.email?.split('@')[0]}</Text>
           <Text style={styles.email}>{user?.email}</Text>
 
           <TouchableOpacity style={styles.levelBadge} onPress={() => setLevelOpen(true)} activeOpacity={0.75}>
@@ -401,7 +433,7 @@ export default function ProfileScreen() {
               <Text style={styles.editTitle}>Editar perfil</Text>
 
               {/* Photo picker */}
-              <TouchableOpacity style={styles.editAvatarPicker} onPress={handlePickPhoto} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.editAvatarPicker} onPress={handlePhotoOptions} activeOpacity={0.8}>
                 <View style={styles.editAvatarRing}>
                   {editPhotoSource ? (
                     <Image source={editPhotoSource} style={styles.editAvatarImage} />

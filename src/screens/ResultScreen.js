@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Animated, Linking,
@@ -16,6 +16,7 @@ export default function ResultScreen({ navigation, route }) {
   const pointsAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const saved = useRef(false);
+  const [instructionsExpanded, setInstructionsExpanded] = useState(!fromHistory);
 
   useEffect(() => {
     Animated.parallel([
@@ -76,7 +77,7 @@ export default function ResultScreen({ navigation, route }) {
       {/* Instructions */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Instrucciones</Text>
-        {result.instructions.map((step, i) => (
+        {(instructionsExpanded ? result.instructions : result.instructions.slice(0, 2)).map((step, i) => (
           <View key={i} style={styles.instructionRow}>
             <View style={styles.stepNum}>
               <Text style={styles.stepNumText}>{i + 1}</Text>
@@ -84,6 +85,22 @@ export default function ResultScreen({ navigation, route }) {
             <Text style={styles.instructionText}>{step}</Text>
           </View>
         ))}
+        {fromHistory && result.instructions.length > 2 && (
+          <TouchableOpacity
+            style={styles.seeMoreBtn}
+            onPress={() => setInstructionsExpanded(e => !e)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.seeMoreText}>
+              {instructionsExpanded ? 'Ver menos' : `Ver ${result.instructions.length - 2} más`}
+            </Text>
+            <Ionicons
+              name={instructionsExpanded ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color={colors.canopy}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Impact */}
@@ -237,6 +254,15 @@ const styles = StyleSheet.create({
   },
   stepNumText: { fontFamily: font.bold, fontSize: size.xs, color: colors.canopy },
   instructionText: { flex: 1, fontFamily: font.regular, fontSize: size.base, color: colors.stone600, lineHeight: 22 },
+
+  seeMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+    marginTop: space.xs,
+    alignSelf: 'flex-start',
+  },
+  seeMoreText: { fontFamily: font.semibold, fontSize: size.sm, color: colors.canopy },
 
   impactRow: { flexDirection: 'row' },
   impactItem: { flex: 1, alignItems: 'center', paddingVertical: space.sm },

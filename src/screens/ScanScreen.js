@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Alert, Image,
 } from 'react-native';
@@ -18,13 +18,21 @@ export default function ScanScreen({ navigation }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [preview, setPreview] = useState(null);
   const cameraRef = useRef(null);
+  const centersPrefetchRef = useRef(null);
   const { coords } = useLocation();
+
+  const prefetchCenters = useCallback((currentCoords) => {
+    if (!currentCoords) return;
+    centersPrefetchRef.current = fetchNearbyCenters(currentCoords.latitude, currentCoords.longitude)
+      .catch(() => []);
+  }, []);
 
   async function handleCapture() {
     if (!cameraRef.current) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.7, base64: false });
       setPreview(photo.uri);
+      prefetchCenters(coords);
     } catch (err) {
       Alert.alert('Error', 'No se pudo capturar la foto.');
     }
@@ -43,6 +51,7 @@ export default function ScanScreen({ navigation }) {
     });
     if (!result.canceled && result.assets[0]) {
       setPreview(result.assets[0].uri);
+      prefetchCenters(coords);
     }
   }
 
@@ -51,11 +60,12 @@ export default function ScanScreen({ navigation }) {
     setAnalyzing(true);
     try {
       const token = await getIdToken();
+      const centersPromise = centersPrefetchRef.current
+        ?? (coords ? fetchNearbyCenters(coords.latitude, coords.longitude).catch(() => []) : Promise.resolve([]));
+      centersPrefetchRef.current = null;
       const [result, centers] = await Promise.all([
         analyzeImage(preview, token),
-        coords
-          ? fetchNearbyCenters(coords.latitude, coords.longitude).catch(() => [])
-          : Promise.resolve([]),
+        centersPromise,
       ]);
       setPreview(null);
       navigation.navigate('Result', { result: { ...result, nearest_centers: centers.slice(0, 3) } });
