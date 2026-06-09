@@ -28,6 +28,7 @@
       "@react-native-firebase/auth",
       "expo-secure-store",
       "expo-splash-screen",
+      "expo-system-ui",
       "./plugins/withAndroidApkName"
     ],
     "extra": {
