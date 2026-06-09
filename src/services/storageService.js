@@ -16,12 +16,8 @@ import {
 
 const db = getFirestore();
 
-export async function getUserProfile(uid) {
-  const ref = doc(db, 'users', uid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) return snap.data();
-
-  const defaultProfile = {
+export async function createUserProfile(uid, initialFields = {}) {
+  const profile = {
     uid,
     ecoPoints: 0,
     totalScans: 0,
@@ -31,9 +27,17 @@ export async function getUserProfile(uid) {
     recyclingFrequency: null,
     materials: {},
     createdAt: new Date().toISOString(),
+    ...initialFields,
   };
-  await setDoc(ref, defaultProfile);
-  return defaultProfile;
+  await setDoc(doc(db, 'users', uid), profile);
+  return profile;
+}
+
+export async function getUserProfile(uid) {
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) return snap.data();
+  return createUserProfile(uid);
 }
 
 export async function saveRecycleHistory(uid, result) {

@@ -7,7 +7,7 @@ import { useModal } from '../context/ModalContext';
 import { colors, font, size, space, radius, shadow } from '../theme';
 
 export default function VerifyScreen() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showAlert } = useModal();
   const [checking, setChecking] = useState(false);
   const [sending, setSending] = useState(false);
@@ -28,7 +28,9 @@ export default function VerifyScreen() {
     setChecking(true);
     try {
       const verified = await checkEmailVerified();
-      if (!verified) {
+      if (verified) {
+        refreshUser();
+      } else {
         showAlert('Aún no verificado', 'Todavía no detectamos la verificación. Abre el enlace del correo y vuelve a intentarlo.', 'info');
       }
     } catch (err) {

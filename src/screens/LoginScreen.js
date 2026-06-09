@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { login, register } from '../services/authService';
-import { updateUserProfileFields } from '../services/storageService';
+import { createUserProfile } from '../services/storageService';
 import { useModal } from '../context/ModalContext';
 import { colors, font, size, space, radius, shadow } from '../theme';
 
@@ -47,7 +47,7 @@ export default function LoginScreen() {
     try {
       if (isRegistering) {
         const user = await register(email.trim(), password);
-        await updateUserProfileFields(user.uid, { recyclingFrequency: recyclingFreq });
+        await createUserProfile(user.uid, { recyclingFrequency: recyclingFreq });
         showAlert('¡Cuenta creada!', 'Te enviamos un enlace a tu correo. Ábrelo para activar tu cuenta.', 'success');
       } else {
         await login(email.trim(), password);
