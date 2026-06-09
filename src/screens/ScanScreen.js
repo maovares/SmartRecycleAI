@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocation } from '../context/LocationContext';
 import { analyzeImage, fetchNearbyCenters } from '../services/apiService';
-import { getIdToken } from '../services/authService';
+import { getUserIdToken } from '../services/authService';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { colors, font, size, space, radius } from '../theme';
 
@@ -65,7 +65,7 @@ export default function ScanScreen({ navigation }) {
     if (!preview) return;
     setAnalyzing(true);
     try {
-      const token = await getIdToken();
+      const token = await getUserIdToken();
       const centersPromise = centersPrefetchRef.current
         ?? (coords ? fetchNearbyCenters(coords.latitude, coords.longitude).catch(() => []) : Promise.resolve([]));
       centersPrefetchRef.current = null;
