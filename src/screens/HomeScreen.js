@@ -55,7 +55,7 @@ export default function HomeScreen({ navigation }) {
       <View style={[styles.header, { paddingTop: Math.max(56, insets.top + 16) }]}>
         <View style={styles.headerRow}>
           <View style={styles.greetingWrap}>
-            <Text style={styles.greeting} numberOfLines={1}>Hola, {firstName}</Text>
+            <Text style={styles.greeting} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>Hola, {firstName}</Text>
             <Text style={styles.subGreeting}>Sigamos reciclando</Text>
           </View>
           {profile && <EcoPointsBadge points={profile.ecoPoints} large />}
