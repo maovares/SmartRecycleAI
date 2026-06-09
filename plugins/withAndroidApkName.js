@@ -1,11 +1,11 @@
 const { withAppBuildGradle } = require('@expo/config-plugins');
 
 const APK_NAME_BLOCK = `
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "SmartRecycleAI-v\${variant.versionName}-\${variant.buildType.name}.apk"
-        }
+android.applicationVariants.all { variant ->
+    variant.outputs.all {
+        outputFileName = "SmartRecycleAI-v\${variant.versionName}-\${variant.buildType.name}.apk"
     }
+}
 `;
 
 module.exports = (config) =>
