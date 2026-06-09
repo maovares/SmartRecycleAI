@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.stone200,
+    borderColor: colors.outline,
     borderRadius: radius.md,
     paddingHorizontal: space.md,
     paddingVertical: space.md,

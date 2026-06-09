@@ -1,35 +1,33 @@
 // ─── SmartRecycle AI — Design System ────────────────────────────────────────
-// Single source of truth. Edit here to change the entire visual identity.
+// Aligned to Material Design 3 color roles while staying cross-platform.
+// M3 role annotations appear inline → primary, onPrimary, primaryContainer, etc.
 
 // ── Colors ──────────────────────────────────────────────────────────────────
 export const colors = {
-  // Brand greens
-  // forest: sin cambio — ancla oscura necesaria para headers con buen contraste
-  // canopy/sage: más vibrantes y luminosos que la paleta anterior
-  forest:    '#1B4332',   // primario: verde selva (sin cambio)
-  canopy:    '#2A7850',   // secundario: más vivo que #2D6A4F (contraste 5:1 en blanco ✓)
-  sage:      '#62B88E',   // acento verde: más saturado y fresco que #74A689
-  sageFaint: '#E3F4EC',   // fondo de badges: tint más limpio
+  // ── Primary (M3: primary / onPrimary / primaryContainer / onPrimaryContainer)
+  forest:    '#1B4332',   // primary — brand anchor, headers, filled buttons
+  canopy:    '#2A7850',   // secondary — supporting labels, active accents (5:1 on white ✓)
+  sage:      '#62B88E',   // decorative accent — icons, illustrations
+  sageFaint: '#D0EDDF',   // primaryContainer — pill indicators, badges, step numbers
 
-  // Accent coral — reemplaza el amber terroso (#C17A3A) con coral moderno
-  // Tendencia dominante 2024 en apps lifestyle/eco para audiencia joven
-  amber:      '#F07058',  // coral vivo  (antes naranja-café #C17A3A)
-  amberDark:  '#D35640',  // coral oscuro (antes #A3612A)
-  amberLight: '#FDE8E2',  // fondo coral suave (antes #F5E6D3)
-  amberFaint: '#FFF2EE',  // fondo coral muy suave (antes #FBF3EB)
+  // ── Tertiary (M3: tertiary / tertiaryContainer)
+  amber:      '#F07058',  // tertiary — coral accent, EcoPoints, CTAs
+  amberDark:  '#D35640',  // tertiary pressed / dark
+  amberLight: '#FDE8E2',  // tertiaryContainer — soft coral backgrounds
+  amberFaint: '#FFF2EE',  // tertiaryContainer subtle
 
-  // Neutrals — derivados del verde primario (teal-gray, no brown-gray)
-  // Refactoring UI: los grises deben heredar el hue del color primario
-  bark:     '#F3F6F4',   // background: tinte verde-gris sutil (antes beige-cálido)
-  surface:  '#FFFFFF',
-  stone50:  '#F7FAF8',   // antes #FAF8F5
-  stone100: '#DCE9E4',   // bordes: notablemente más frío (antes #EDE8E1)
-  stone200: '#C6D8D2',   // placeholder border (antes #DDD5CA)
-  stone400: '#82A09A',   // texto terciario / iconos inactivos (antes marrón #A09585)
-  stone600: '#4C6A63',   // texto secundario (antes marrón #6B5F52)
-  ink:      '#111D1A',   // texto principal: verde-negro (antes café-negro #1C1611)
+  // ── Surface & background (M3: background, surface, surfaceContainer, outline)
+  bark:     '#F5FBF4',   // background — app background (tone 98, green tint)
+  surface:  '#FFFFFF',   // surface / surfaceContainerLowest — cards
+  stone50:  '#F7FAF8',
+  stone100: '#DCE9E4',   // outlineVariant — dividers, subtle borders
+  stone200: '#C6D8D2',   // surface border / placeholder outlines
+  outline:  '#6B7C74',   // M3 outline — component borders (buttons, text fields)
+  stone400: '#82A09A',   // onSurfaceVariant muted — inactive icons, tertiary text
+  stone600: '#4C6A63',   // onSurfaceVariant — secondary text
+  ink:      '#111D1A',   // onSurface — primary text
 
-  // Semantic — alineados con la nueva paleta
+  // ── Semantic
   successBg:   '#E3F2EB',
   successText: '#1B4332',
   errorBg:     '#FDE8E2',
@@ -37,10 +35,10 @@ export const colors = {
   warningBg:   '#FEF0E6',
   warningText: '#9E5010',
 
-  // Utility
+  // ── Utility
   white:       '#FFFFFF',
   transparent: 'transparent',
-  overlay:     'rgba(17, 29, 26, 0.45)',   // verde-negro (antes marrón rgba(28,22,17))
+  overlay:     'rgba(17, 29, 26, 0.45)',
   overlayDark: 'rgba(17, 29, 26, 0.72)',
 };
 
@@ -76,12 +74,13 @@ export const space = {
   xxxl: 48,
 };
 
-// ── Border radius ────────────────────────────────────────────────────────────
+// ── Border radius (M3 shape scale) ──────────────────────────────────────────
+// Extra Small=4, Small=8, Medium=12, Large=16, Full=∞
 export const radius = {
   xs:   4,
-  sm:   6,
-  md:   10,
-  lg:   14,
+  sm:   8,
+  md:   12,
+  lg:   16,
   pill: 100,
 };
 

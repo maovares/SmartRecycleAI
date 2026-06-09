@@ -161,13 +161,8 @@ export default function ResultScreen({ navigation, route }) {
         </View>
       )}
 
-      {/* Actions */}
-      {fromHistory ? (
-        <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back-outline" size={18} color={colors.white} />
-          <Text style={styles.primaryBtnText}>Volver</Text>
-        </TouchableOpacity>
-      ) : (
+      {/* Actions — only shown after a new scan; back arrow in native header handles history */}
+      {!fromHistory && (
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.secondaryBtn}
@@ -303,7 +298,7 @@ const styles = StyleSheet.create({
   primaryBtnText: { fontFamily: font.bold, fontSize: size.base, color: colors.white },
   secondaryBtn: {
     flex: 1, flexDirection: 'row', gap: space.sm,
-    borderWidth: 1.5, borderColor: colors.stone200,
+    borderWidth: 1.5, borderColor: colors.outline,
     borderRadius: radius.md,
     paddingVertical: space.lg,
     justifyContent: 'center', alignItems: 'center',

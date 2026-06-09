@@ -28,21 +28,35 @@ function MainTabs() {
           backgroundColor: colors.surface,
           borderTopColor: colors.stone100,
           borderTopWidth: 1,
+          paddingTop: 6,
           ...shadow.sm,
-          elevation: 8,
+          elevation: 3,
         },
         tabBarLabelStyle: {
           fontFamily: font.medium,
           fontSize: 11,
+          marginTop: 2,
         },
-        tabBarIcon: ({ color, size }) => {
-          const icons = {
-            Home: 'home-outline',
-            Scan: 'scan-outline',
-            Centers: 'location-outline',
-            Profile: 'person-outline',
+        tabBarIcon: ({ color, focused }) => {
+          const iconMap = {
+            Home:    ['home',     'home-outline'],
+            Scan:    ['scan',     'scan-outline'],
+            Centers: ['location', 'location-outline'],
+            Profile: ['person',   'person-outline'],
           };
-          return <Ionicons name={icons[route.name]} size={size} color={color} />;
+          const [activeIcon, inactiveIcon] = iconMap[route.name];
+          return (
+            <View style={{
+              width: 64,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: focused ? colors.sageFaint : 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Ionicons name={focused ? activeIcon : inactiveIcon} size={22} color={color} />
+            </View>
+          );
         },
       })}
     >
@@ -90,7 +104,13 @@ export default function AppNavigator() {
           <Stack.Screen
             name="History"
             component={HistoryScreen}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: true,
+              title: 'Historial',
+              headerStyle: { backgroundColor: colors.forest },
+              headerTintColor: colors.white,
+              headerTitleStyle: { fontFamily: font.semibold },
+            }}
           />
         </>
       )}

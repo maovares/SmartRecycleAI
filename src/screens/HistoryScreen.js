@@ -41,13 +41,6 @@ export default function HistoryScreen({ navigation }) {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: Math.max(56, insets.top + 16) }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={colors.white} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Historial</Text>
-      </View>
-
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.forest} />
@@ -113,17 +106,6 @@ export default function HistoryScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bark },
-
-  header: {
-    backgroundColor: colors.forest,
-    paddingBottom: space.xl,
-    paddingHorizontal: space.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-  },
-  backBtn: { padding: space.xs },
-  headerTitle: { fontFamily: font.display, fontSize: size.lg, color: colors.white },
 
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: space.lg },
