@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ecoPoints, setEcoPoints] = useState(0);
-  const [, setTick] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(getAuth(), (firebaseUser) => {
@@ -17,8 +16,12 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  // Forces all consumers to re-read user.displayName / photoURL after updateProfile
-  const refreshUser = useCallback(() => setTick(t => t + 1), []);
+  // Re-reads currentUser from Firebase Auth and puts the fresh object into state,
+  // so consumers (e.g. HomeScreen) pick up updated displayName / photoURL immediately.
+  const refreshUser = useCallback(() => {
+    const fresh = getAuth().currentUser;
+    if (fresh) setUser(fresh);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, ecoPoints, setEcoPoints, refreshUser }}>
