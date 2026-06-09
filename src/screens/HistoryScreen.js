@@ -8,11 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { getFullHistory } from '../services/storageService';
-
-const COLORS = {
-  primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
-  background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
-};
+import { colors, font, size, space, radius, shadow } from '../theme';
 
 export default function HistoryScreen({ navigation }) {
   const { user } = useAuth();
@@ -47,25 +43,30 @@ export default function HistoryScreen({ navigation }) {
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: Math.max(56, insets.top + 16) }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color="#FFF" />
+          <Ionicons name="arrow-back" size={22} color={colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Historial de reciclaje</Text>
+        <Text style={styles.headerTitle}>Historial</Text>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={colors.forest} />
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: Math.max(32, insets.bottom + 16) }]}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: Math.max(32, insets.bottom + 16) }
+          ]}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.forest} />
+          }
         >
           {history.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="leaf-outline" size={56} color={COLORS.accent} />
-              <Text style={styles.emptyText}>Aún no hay ítems reciclados.</Text>
-              <Text style={styles.emptySubText}>Escanea tu primer residuo para empezar.</Text>
+              <Ionicons name="leaf-outline" size={48} color={colors.sage} />
+              <Text style={styles.emptyTitle}>Sin ítems aún</Text>
+              <Text style={styles.emptyText}>Escanea tu primer residuo para empezar.</Text>
             </View>
           ) : (
             history.map((item) => (
@@ -75,26 +76,31 @@ export default function HistoryScreen({ navigation }) {
                 activeOpacity={0.75}
                 onPress={() => navigation.navigate('Result', { result: item, fromHistory: true })}
               >
-                <View style={styles.cardLeft}>
+                <View style={[
+                  styles.statusDot,
+                  { backgroundColor: item.recyclable ? colors.successBg : colors.errorBg }
+                ]}>
                   <Ionicons
-                    name={item.recyclable ? 'checkmark-circle' : 'close-circle'}
-                    size={30}
-                    color={item.recyclable ? COLORS.secondary : '#E57373'}
+                    name={item.recyclable ? 'checkmark' : 'close'}
+                    size={14}
+                    color={item.recyclable ? colors.successText : colors.errorText}
                   />
-                  <View style={styles.cardText}>
-                    <Text style={styles.cardObj} numberOfLines={2}>{item.object}</Text>
-                    <Text style={styles.cardMat} numberOfLines={1}>{item.material}</Text>
-                    <Text style={styles.cardDate}>
-                      {new Date(item.timestamp).toLocaleDateString('es-CR', {
-                        day: 'numeric', month: 'short', year: 'numeric',
-                      })}
-                    </Text>
-                  </View>
                 </View>
+
+                <View style={styles.cardBody}>
+                  <Text style={styles.cardObj} numberOfLines={1}>{item.object}</Text>
+                  <Text style={styles.cardMat} numberOfLines={1}>{item.material}</Text>
+                  <Text style={styles.cardDate}>
+                    {new Date(item.timestamp).toLocaleDateString('es-CR', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                  </Text>
+                </View>
+
                 <View style={styles.cardRight}>
                   <Text style={styles.cardPts}>+{item.points}</Text>
                   <Text style={styles.cardPtsLabel}>pts</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#CCC" style={{ marginTop: 4 }} />
+                  <Ionicons name="chevron-forward" size={14} color={colors.stone200} style={{ marginTop: space.xs }} />
                 </View>
               </TouchableOpacity>
             ))
@@ -106,29 +112,45 @@ export default function HistoryScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
+  screen: { flex: 1, backgroundColor: colors.bark },
+
   header: {
-    backgroundColor: COLORS.primary, paddingBottom: 20, paddingHorizontal: 20,
-    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: colors.forest,
+    paddingBottom: space.xl,
+    paddingHorizontal: space.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
   },
-  backBtn: { padding: 4 },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#FFF' },
+  backBtn: { padding: space.xs },
+  headerTitle: { fontFamily: font.display, fontSize: size.lg, color: colors.white },
+
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { padding: 16 },
-  emptyState: { alignItems: 'center', paddingTop: 60, gap: 10 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: '#999', textAlign: 'center' },
-  emptySubText: { fontSize: 13, color: '#BBB', textAlign: 'center' },
+  content: { padding: space.lg },
+
+  emptyState: { alignItems: 'center', paddingTop: 60, gap: space.sm },
+  emptyTitle: { fontFamily: font.semibold, fontSize: size.base, color: colors.stone600 },
+  emptyText: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone400, textAlign: 'center' },
+
   card: {
-    backgroundColor: COLORS.card, borderRadius: 14, padding: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginBottom: 10, elevation: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: space.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: space.sm,
+    gap: space.md,
+    ...shadow.sm,
   },
-  cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  cardText: { marginLeft: 12, flexShrink: 1 },
-  cardObj: { fontSize: 15, fontWeight: '600', color: COLORS.text },
-  cardMat: { fontSize: 12, color: '#888', marginTop: 2 },
-  cardDate: { fontSize: 11, color: '#AAA', marginTop: 3 },
-  cardRight: { alignItems: 'center', marginLeft: 8 },
-  cardPts: { fontSize: 16, fontWeight: '800', color: COLORS.primary },
-  cardPtsLabel: { fontSize: 10, color: COLORS.primary, marginTop: -2 },
+  statusDot: {
+    width: 32, height: 32, borderRadius: radius.pill,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  cardBody: { flex: 1 },
+  cardObj: { fontFamily: font.semibold, fontSize: size.base, color: colors.ink },
+  cardMat: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone400, marginTop: 2 },
+  cardDate: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, marginTop: 3 },
+  cardRight: { alignItems: 'center' },
+  cardPts: { fontFamily: font.extrabold, fontSize: size.md, color: colors.forest },
+  cardPtsLabel: { fontFamily: font.medium, fontSize: size.xs, color: colors.canopy, marginTop: -2 },
 });

@@ -10,11 +10,7 @@ import { useLocation } from '../context/LocationContext';
 import { analyzeImage, fetchNearbyCenters } from '../services/apiService';
 import { getIdToken } from '../services/authService';
 import LoadingOverlay from '../components/LoadingOverlay';
-
-const COLORS = {
-  primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
-  background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
-};
+import { colors, font, size, space, radius } from '../theme';
 
 export default function ScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -57,16 +53,19 @@ export default function ScanScreen({ navigation }) {
       const token = await getIdToken();
       const [result, centers] = await Promise.all([
         analyzeImage(preview, token),
-        coords ? fetchNearbyCenters(coords.latitude, coords.longitude).catch(() => []) : Promise.resolve([]),
+        coords
+          ? fetchNearbyCenters(coords.latitude, coords.longitude).catch(() => [])
+          : Promise.resolve([]),
       ]);
       setPreview(null);
       navigation.navigate('Result', { result: { ...result, nearest_centers: centers.slice(0, 3) } });
     } catch (err) {
-      const msg = err.response?.data?.detail
-        || (err.message === 'Aborted' || err.code === 'ECONNABORTED'
-          ? 'El servidor tardó demasiado en responder. Intenta de nuevo en unos segundos.'
-          : err.message)
-        || 'No se pudo analizar la imagen.';
+      const msg =
+        err.response?.data?.detail ||
+        (err.message === 'Aborted' || err.code === 'ECONNABORTED'
+          ? 'El servidor tardó demasiado. Intenta de nuevo.'
+          : err.message) ||
+        'No se pudo analizar la imagen.';
       Alert.alert('Error', msg);
     } finally {
       setAnalyzing(false);
@@ -77,10 +76,14 @@ export default function ScanScreen({ navigation }) {
 
   if (!permission.granted) {
     return (
-      <View style={styles.permissionScreen}>
-        <Ionicons name="camera-outline" size={72} color={COLORS.accent} />
-        <Text style={styles.permissionTitle}>Cámara requerida</Text>
-        <Text style={styles.permissionText}>Necesitamos acceso a la cámara para escanear residuos.</Text>
+      <View style={styles.permScreen}>
+        <View style={styles.permIcon}>
+          <Ionicons name="camera-outline" size={40} color={colors.forest} />
+        </View>
+        <Text style={styles.permTitle}>Cámara requerida</Text>
+        <Text style={styles.permText}>
+          Necesitamos acceso a la cámara para escanear residuos.
+        </Text>
         <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
           <Text style={styles.permBtnText}>Conceder permiso</Text>
         </TouchableOpacity>
@@ -96,11 +99,16 @@ export default function ScanScreen({ navigation }) {
           <Text style={styles.previewHint}>¿Usar esta imagen?</Text>
           <View style={styles.previewActions}>
             <TouchableOpacity style={styles.previewDiscard} onPress={() => setPreview(null)}>
-              <Ionicons name="close" size={24} color="#FFF" />
+              <Ionicons name="close" size={20} color={colors.white} />
               <Text style={styles.previewDiscardText}>Retomar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.previewConfirm} onPress={handleAnalyze} disabled={analyzing}>
-              <Ionicons name="sparkles-outline" size={22} color="#FFF" />
+            <TouchableOpacity
+              style={styles.previewConfirm}
+              onPress={handleAnalyze}
+              disabled={analyzing}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="sparkles-outline" size={20} color={colors.white} />
               <Text style={styles.previewConfirmText}>Analizar con IA</Text>
             </TouchableOpacity>
           </View>
@@ -113,7 +121,6 @@ export default function ScanScreen({ navigation }) {
   return (
     <View style={styles.screen}>
       <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
-        {/* Guide frame */}
         <View style={styles.guideFrame} />
 
         <View style={styles.topBar}>
@@ -121,8 +128,8 @@ export default function ScanScreen({ navigation }) {
         </View>
 
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.galleryBtn} onPress={handleGallery}>
-            <Ionicons name="images-outline" size={28} color="#FFF" />
+          <TouchableOpacity style={styles.sideBtn} onPress={handleGallery}>
+            <Ionicons name="images-outline" size={26} color={colors.white} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.captureBtn} onPress={handleCapture}>
@@ -130,10 +137,10 @@ export default function ScanScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.flipBtn}
+            style={styles.sideBtn}
             onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}
           >
-            <Ionicons name="camera-reverse-outline" size={28} color="#FFF" />
+            <Ionicons name="camera-reverse-outline" size={26} color={colors.white} />
           </TouchableOpacity>
         </View>
       </CameraView>
@@ -144,54 +151,90 @@ export default function ScanScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
+
   guideFrame: {
     position: 'absolute', top: '25%', left: '15%', right: '15%', bottom: '25%',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)', borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.5)',
+    borderRadius: radius.md,
   },
-  topBar: {
-    position: 'absolute', top: 56, left: 0, right: 0, alignItems: 'center',
-  },
+  topBar: { position: 'absolute', top: 56, left: 0, right: 0, alignItems: 'center' },
   topBarText: {
-    color: '#FFF', fontSize: 14, backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20,
+    fontFamily: font.medium,
+    fontSize: size.sm,
+    color: colors.white,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    paddingHorizontal: space.lg,
+    paddingVertical: space.xs,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
   },
   bottomBar: {
     position: 'absolute', bottom: 40, left: 0, right: 0,
-    flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingHorizontal: 32,
+    flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
+    paddingHorizontal: space.xxl,
   },
-  galleryBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  sideBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   captureBtn: {
-    width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: '#FFF',
+    width: 72, height: 72, borderRadius: 36,
+    borderWidth: 3, borderColor: colors.white,
     alignItems: 'center', justifyContent: 'center',
   },
-  captureBtnInner: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#FFF' },
-  flipBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  permissionScreen: {
-    flex: 1, backgroundColor: COLORS.background, alignItems: 'center',
-    justifyContent: 'center', padding: 32,
+  captureBtnInner: { width: 58, height: 58, borderRadius: 29, backgroundColor: colors.white },
+
+  permScreen: {
+    flex: 1, backgroundColor: colors.bark,
+    alignItems: 'center', justifyContent: 'center', padding: space.xxl,
   },
-  permissionTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text, marginTop: 16, marginBottom: 8 },
-  permissionText: { color: '#666', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  permIcon: {
+    width: 88, height: 88, borderRadius: radius.pill,
+    backgroundColor: colors.sageFaint,
+    alignItems: 'center', justifyContent: 'center', marginBottom: space.xl,
+  },
+  permTitle: { fontFamily: font.display, fontSize: size.lg, color: colors.ink, marginBottom: space.sm },
+  permText: {
+    fontFamily: font.regular,
+    fontSize: size.base,
+    color: colors.stone600,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: space.xl,
+  },
   permBtn: {
-    backgroundColor: COLORS.primary, paddingVertical: 14, paddingHorizontal: 32,
-    borderRadius: 12,
+    backgroundColor: colors.forest,
+    paddingVertical: space.md,
+    paddingHorizontal: space.xxl,
+    borderRadius: radius.md,
   },
-  permBtnText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
+  permBtnText: { fontFamily: font.bold, fontSize: size.base, color: colors.white },
+
   previewImage: { flex: 1 },
   previewOverlay: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)', padding: 24, paddingBottom: 40,
+    backgroundColor: 'rgba(28,22,17,0.72)',
+    padding: space.xl,
+    paddingBottom: 40,
   },
-  previewHint: { color: '#FFF', textAlign: 'center', fontSize: 16, marginBottom: 16 },
-  previewActions: { flexDirection: 'row', gap: 12 },
+  previewHint: {
+    fontFamily: font.medium,
+    fontSize: size.base,
+    color: 'rgba(255,255,255,0.80)',
+    textAlign: 'center',
+    marginBottom: space.lg,
+  },
+  previewActions: { flexDirection: 'row', gap: space.sm },
   previewDiscard: {
-    flex: 1, flexDirection: 'row', gap: 8, borderWidth: 1.5, borderColor: '#FFF',
-    borderRadius: 12, paddingVertical: 14, justifyContent: 'center', alignItems: 'center',
+    flex: 1, flexDirection: 'row', gap: space.sm,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: radius.md, paddingVertical: space.md,
+    justifyContent: 'center', alignItems: 'center',
   },
-  previewDiscardText: { color: '#FFF', fontWeight: '600' },
+  previewDiscardText: { fontFamily: font.medium, fontSize: size.base, color: colors.white },
   previewConfirm: {
-    flex: 2, flexDirection: 'row', gap: 8, backgroundColor: COLORS.secondary,
-    borderRadius: 12, paddingVertical: 14, justifyContent: 'center', alignItems: 'center',
+    flex: 2, flexDirection: 'row', gap: space.sm,
+    backgroundColor: colors.amber,
+    borderRadius: radius.md, paddingVertical: space.md,
+    justifyContent: 'center', alignItems: 'center',
   },
-  previewConfirmText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+  previewConfirmText: { fontFamily: font.bold, fontSize: size.base, color: colors.white },
 });

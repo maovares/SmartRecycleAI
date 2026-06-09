@@ -1,10 +1,11 @@
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { colors, font, size, space, radius } from '../theme';
 
 export default function LoadingOverlay({ message = 'Analizando con IA...' }) {
   return (
     <View style={styles.overlay}>
       <View style={styles.card}>
-        <ActivityIndicator size="small" color="#5DCAA5" />
+        <ActivityIndicator size="small" color={colors.amber} />
         <Text style={styles.text}>{message}</Text>
       </View>
     </View>
@@ -14,7 +15,7 @@ export default function LoadingOverlay({ message = 'Analizando con IA...' }) {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(28,22,17,0.30)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,
@@ -22,16 +23,16 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(10,30,22,0.88)',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 16,
+    gap: space.md,
+    backgroundColor: 'rgba(28,22,17,0.88)',
+    paddingHorizontal: space.xl,
+    paddingVertical: space.md,
+    borderRadius: radius.md,
   },
   text: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.medium,
+    fontSize: size.base,
+    color: colors.white,
     letterSpacing: 0.2,
   },
 });

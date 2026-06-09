@@ -5,11 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { login, register } from '../services/authService';
-
-const COLORS = {
-  primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
-  background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
-};
+import { colors, font, size, space, radius, shadow } from '../theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -20,7 +16,7 @@ export default function LoginScreen() {
 
   async function handleSubmit() {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Por favor completa todos los campos.');
+      Alert.alert('Campos incompletos', 'Por favor completa correo y contraseña.');
       return;
     }
     setLoading(true);
@@ -57,14 +53,20 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Ionicons name="leaf" size={56} color={COLORS.accent} />
-          <Text style={styles.title}>Smart Recycle AI</Text>
-          <Text style={styles.subtitle}>Recicla inteligente, cuida el planeta</Text>
+        {/* Brand */}
+        <View style={styles.brand}>
+          <View style={styles.logoRing}>
+            <Ionicons name="leaf" size={32} color={colors.forest} />
+          </View>
+          <Text style={styles.brandName}>Smart Recycle</Text>
+          <Text style={styles.brandTagline}>Clasifica. Aprende. Cuida.</Text>
         </View>
 
+        {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>{isRegistering ? 'Crear cuenta' : 'Iniciar sesión'}</Text>
+          <Text style={styles.cardTitle}>
+            {isRegistering ? 'Crear cuenta' : 'Iniciar sesión'}
+          </Text>
 
           <Text style={styles.label}>Correo electrónico</Text>
           <TextInput
@@ -75,7 +77,7 @@ export default function LoginScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            placeholderTextColor="#AAA"
+            placeholderTextColor={colors.stone400}
           />
 
           <Text style={styles.label}>Contraseña</Text>
@@ -86,10 +88,14 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               placeholder="••••••••"
               secureTextEntry={!showPassword}
-              placeholderTextColor="#AAA"
+              placeholderTextColor={colors.stone400}
             />
             <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#888" />
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={colors.stone400}
+              />
             </TouchableOpacity>
           </View>
 
@@ -97,14 +103,19 @@ export default function LoginScreen() {
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleSubmit}
             disabled={loading}
+            activeOpacity={0.85}
           >
-            <Text style={styles.btnText}>{loading ? 'Cargando...' : isRegistering ? 'Registrarse' : 'Entrar'}</Text>
+            <Text style={styles.btnText}>
+              {loading ? 'Cargando...' : isRegistering ? 'Registrarse' : 'Entrar'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.switchBtn} onPress={() => setIsRegistering(!isRegistering)}>
             <Text style={styles.switchText}>
               {isRegistering ? '¿Ya tienes cuenta? ' : '¿Sin cuenta? '}
-              <Text style={styles.switchLink}>{isRegistering ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
+              <Text style={styles.switchLink}>
+                {isRegistering ? 'Iniciar sesión' : 'Crear cuenta'}
+              </Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -114,28 +125,82 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: COLORS.primary },
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingVertical: 48 },
-  header: { alignItems: 'center', marginBottom: 32 },
-  title: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', marginTop: 12 },
-  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
-  card: { backgroundColor: COLORS.card, borderRadius: 20, padding: 24, elevation: 4 },
-  cardTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text, marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 6 },
+  flex: { flex: 1, backgroundColor: colors.forest },
+  container: { flexGrow: 1, justifyContent: 'center', padding: space.xl, paddingVertical: space.xxxl },
+
+  brand: { alignItems: 'center', marginBottom: space.xxl },
+  logoRing: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.pill,
+    backgroundColor: colors.amberLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: space.lg,
+  },
+  brandName: {
+    fontFamily: font.display,
+    fontSize: size.xl,
+    color: colors.white,
+    letterSpacing: 0.3,
+  },
+  brandTagline: {
+    fontFamily: font.regular,
+    fontSize: size.sm,
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: space.xs,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: space.xl,
+    ...shadow.lg,
+  },
+  cardTitle: {
+    fontFamily: font.display,
+    fontSize: size.lg,
+    color: colors.ink,
+    marginBottom: space.xl,
+  },
+
+  label: {
+    fontFamily: font.medium,
+    fontSize: size.sm,
+    color: colors.stone600,
+    marginBottom: space.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
   input: {
-    borderWidth: 1, borderColor: '#DDD', borderRadius: 10, paddingHorizontal: 14,
-    paddingVertical: 12, fontSize: 15, color: COLORS.text, backgroundColor: '#FAFAFA', marginBottom: 14,
+    borderWidth: 1,
+    borderColor: colors.stone200,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.md,
+    fontSize: size.base,
+    fontFamily: font.regular,
+    color: colors.ink,
+    backgroundColor: colors.stone50,
+    marginBottom: space.md,
   },
   passwordRow: { position: 'relative' },
-  passwordInput: { paddingRight: 46 },
-  eyeBtn: { position: 'absolute', right: 12, top: 12 },
+  passwordInput: { paddingRight: 44, marginBottom: space.lg },
+  eyeBtn: { position: 'absolute', right: space.md, top: space.md },
+
   btn: {
-    backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 15,
-    alignItems: 'center', marginTop: 8,
+    backgroundColor: colors.amber,
+    borderRadius: radius.md,
+    paddingVertical: space.lg,
+    alignItems: 'center',
+    ...shadow.sm,
   },
-  btnDisabled: { opacity: 0.6 },
-  btnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
-  switchBtn: { marginTop: 18, alignItems: 'center' },
-  switchText: { color: '#666', fontSize: 14 },
-  switchLink: { color: COLORS.primary, fontWeight: '700' },
+  btnDisabled: { opacity: 0.55 },
+  btnText: { fontFamily: font.bold, fontSize: size.base, color: colors.white, letterSpacing: 0.3 },
+
+  switchBtn: { marginTop: space.lg, alignItems: 'center' },
+  switchText: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone600 },
+  switchLink: { fontFamily: font.bold, color: colors.canopy },
 });

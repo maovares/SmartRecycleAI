@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { colors, font, shadow } from '../theme';
 
 import LoginScreen from '../screens/LoginScreen';
 import VerifyScreen from '../screens/VerifyScreen';
@@ -21,9 +22,19 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#0F6E56',
-        tabBarInactiveTintColor: '#888',
-        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#E0E0E0' },
+        tabBarActiveTintColor: colors.forest,
+        tabBarInactiveTintColor: colors.stone400,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.stone100,
+          borderTopWidth: 1,
+          ...shadow.sm,
+          elevation: 8,
+        },
+        tabBarLabelStyle: {
+          fontFamily: font.medium,
+          fontSize: 11,
+        },
         tabBarIcon: ({ color, size }) => {
           const icons = {
             Home: 'home-outline',
@@ -48,8 +59,8 @@ export default function AppNavigator() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F5F5' }}>
-        <ActivityIndicator size="large" color="#0F6E56" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bark }}>
+        <ActivityIndicator size="large" color={colors.forest} />
       </View>
     );
   }
@@ -68,7 +79,13 @@ export default function AppNavigator() {
           <Stack.Screen
             name="Result"
             component={ResultScreen}
-            options={{ headerShown: true, title: 'Resultado', headerTintColor: '#0F6E56' }}
+            options={{
+              headerShown: true,
+              title: 'Resultado',
+              headerStyle: { backgroundColor: colors.forest },
+              headerTintColor: colors.white,
+              headerTitleStyle: { fontFamily: font.semibold },
+            }}
           />
           <Stack.Screen
             name="History"

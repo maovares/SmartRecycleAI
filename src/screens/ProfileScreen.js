@@ -9,26 +9,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, resetUserData } from '../services/storageService';
 import { logout } from '../services/authService';
-
-const COLORS = {
-  primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
-  background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
-};
+import { colors, font, size, space, radius, shadow } from '../theme';
 
 function getLevel(points) {
-  if (points < 50) return { name: 'Semilla', icon: 'leaf-outline', color: '#8BC34A' };
-  if (points < 150) return { name: 'Brote', icon: 'flower-outline', color: '#4CAF50' };
-  if (points < 350) return { name: 'Árbol', icon: 'leaf', color: COLORS.secondary };
-  if (points < 700) return { name: 'Bosque', icon: 'earth-outline', color: COLORS.primary };
-  return { name: 'Guardián', icon: 'planet-outline', color: '#1A237E' };
+  if (points < 50)  return { name: 'Semilla',  icon: 'leaf-outline',   color: colors.sage };
+  if (points < 150) return { name: 'Brote',    icon: 'flower-outline', color: colors.canopy };
+  if (points < 350) return { name: 'Árbol',    icon: 'leaf',           color: colors.forest };
+  if (points < 700) return { name: 'Bosque',   icon: 'earth-outline',  color: colors.forest };
+  return              { name: 'Guardián', icon: 'planet-outline', color: colors.ink };
 }
 
 const MATERIAL_ICONS = {
-  PET: { icon: 'water-outline', label: 'PET' },
-  Aluminio: { icon: 'beer-outline', label: 'Aluminio' },
-  Vidrio: { icon: 'wine-outline', label: 'Vidrio' },
-  Papel: { icon: 'document-outline', label: 'Papel' },
-  Cartón: { icon: 'cube-outline', label: 'Cartón' },
+  PET:      { icon: 'water-outline',    label: 'PET' },
+  Aluminio: { icon: 'beer-outline',     label: 'Aluminio' },
+  Vidrio:   { icon: 'wine-outline',     label: 'Vidrio' },
+  Papel:    { icon: 'document-outline', label: 'Papel' },
+  Cartón:   { icon: 'cube-outline',     label: 'Cartón' },
 };
 
 export default function ProfileScreen() {
@@ -82,47 +78,50 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={colors.forest} />
       </View>
     );
   }
 
   const level = getLevel(profile?.ecoPoints ?? 0);
   const materials = Object.entries(profile?.materials ?? {});
+  const menuTop = Math.max(insets.top, 16) + 12;
 
   const stats = [
-    { icon: 'star-outline', value: profile?.ecoPoints ?? 0, label: 'EcoPoints', color: COLORS.primary },
-    { icon: 'scan-outline', value: profile?.totalScans ?? 0, label: 'Escaneos', color: COLORS.secondary },
-    { icon: 'cloud-outline', value: `${(profile?.totalCo2 ?? 0).toFixed(2)}kg`, label: 'CO₂', color: '#607D8B' },
-    { icon: 'calendar-outline', value: Math.floor((Date.now() - new Date(profile?.createdAt || Date.now())) / 86400000), label: 'Días activo', color: '#FF9800' },
+    { icon: 'star-outline',    value: profile?.ecoPoints ?? 0,  label: 'EcoPoints',   color: colors.amber },
+    { icon: 'scan-outline',    value: profile?.totalScans ?? 0, label: 'Escaneos',    color: colors.canopy },
+    { icon: 'cloud-outline',   value: `${(profile?.totalCo2 ?? 0).toFixed(2)}`, label: 'kg CO₂', color: colors.sage },
+    {
+      icon: 'calendar-outline',
+      value: Math.floor((Date.now() - new Date(profile?.createdAt || Date.now())) / 86400000),
+      label: 'Días activo',
+      color: colors.stone600,
+    },
   ];
-
-  const menuTop = Math.max(insets.top, 16) + 12;
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: Math.max(40, insets.bottom + 24) }]}>
         {/* Header */}
-        <View style={[styles.headerBg, { paddingTop: Math.max(56, insets.top + 16) }]}>
-          <View style={styles.avatarCircle}>
+        <View style={[styles.header, { paddingTop: Math.max(56, insets.top + 16) }]}>
+          <View style={styles.avatarRing}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <Text style={styles.name}>{user?.displayName || user?.email?.split('@')[0]}</Text>
           <Text style={styles.email}>{user?.email}</Text>
           <View style={styles.levelBadge}>
-            <Ionicons name={level.icon} size={16} color={level.color} />
-            <Text style={[styles.levelText, { color: level.color }]}>{level.name}</Text>
+            <Ionicons name={level.icon} size={14} color={colors.amber} />
+            <Text style={styles.levelText}>{level.name}</Text>
           </View>
 
-          {/* 3-dot menu button */}
           <TouchableOpacity
             style={[styles.menuBtn, { top: Math.max(insets.top, 12) + 4 }]}
             onPress={() => setMenuOpen(true)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             {resetting
-              ? <ActivityIndicator size="small" color="rgba(255,255,255,0.8)" />
-              : <Ionicons name="ellipsis-vertical" size={22} color="rgba(255,255,255,0.85)" />
+              ? <ActivityIndicator size="small" color="rgba(255,255,255,0.7)" />
+              : <Ionicons name="ellipsis-vertical" size={20} color="rgba(255,255,255,0.7)" />
             }
           </TouchableOpacity>
         </View>
@@ -131,14 +130,14 @@ export default function ProfileScreen() {
         <View style={styles.statsGrid}>
           {stats.map((s) => (
             <View key={s.label} style={styles.statCell}>
-              <Ionicons name={s.icon} size={22} color={s.color} />
+              <Ionicons name={s.icon} size={20} color={s.color} />
               <Text style={styles.statVal}>{s.value}</Text>
               <Text style={styles.statLabel}>{s.label}</Text>
             </View>
           ))}
         </View>
 
-        {/* Material badges */}
+        {/* Materials */}
         {materials.length > 0 && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Materiales reciclados</Text>
@@ -147,7 +146,7 @@ export default function ProfileScreen() {
                 const info = MATERIAL_ICONS[mat] || { icon: 'ellipse-outline', label: mat };
                 return (
                   <View key={mat} style={styles.matBadge}>
-                    <Ionicons name={info.icon} size={18} color={COLORS.primary} />
+                    <Ionicons name={info.icon} size={15} color={colors.forest} />
                     <Text style={styles.matLabel}>{info.label}</Text>
                     <Text style={styles.matCount}>×{count}</Text>
                   </View>
@@ -157,18 +156,18 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-          <Ionicons name="log-out-outline" size={20} color="#E57373" />
+        <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.8}>
+          <Ionicons name="log-out-outline" size={18} color={colors.errorText} />
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Dropdown menu */}
+      {/* Dropdown */}
       <Modal transparent visible={menuOpen} animationType="fade" onRequestClose={() => setMenuOpen(false)}>
         <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={() => setMenuOpen(false)}>
           <View style={[styles.menuCard, { top: menuTop }]}>
             <TouchableOpacity style={styles.menuItem} onPress={handleReset}>
-              <Ionicons name="trash-outline" size={16} color="#888" />
+              <Ionicons name="trash-outline" size={15} color={colors.stone600} />
               <Text style={styles.menuItemText}>Limpiar datos</Text>
             </TouchableOpacity>
           </View>
@@ -179,65 +178,115 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { paddingBottom: 40 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerBg: {
-    backgroundColor: COLORS.primary, paddingBottom: 32,
+  screen: { flex: 1, backgroundColor: colors.bark },
+  content: {},
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bark },
+
+  header: {
+    backgroundColor: colors.forest,
+    paddingBottom: space.xxl,
     alignItems: 'center',
+    paddingHorizontal: space.xl,
   },
-  menuBtn: {
-    position: 'absolute', right: 16,
-    padding: 4,
+  menuBtn: { position: 'absolute', right: space.lg, padding: space.xs },
+  avatarRing: {
+    width: 76,
+    height: 76,
+    borderRadius: radius.pill,
+    backgroundColor: colors.amberLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: space.md,
+    borderWidth: 2,
+    borderColor: colors.amber,
   },
-  avatarCircle: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.accent,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-  },
-  avatarText: { fontSize: 28, fontWeight: '800', color: '#FFF' },
-  name: { fontSize: 20, fontWeight: '700', color: '#FFF' },
-  email: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  avatarText: { fontFamily: font.bold, fontSize: size.lg, color: colors.forest },
+  name: { fontFamily: font.display, fontSize: size.lg, color: colors.white },
+  email: { fontFamily: font.regular, fontSize: size.sm, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
   levelBadge: {
-    flexDirection: 'row', gap: 6, backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginTop: 10,
+    flexDirection: 'row',
+    gap: space.xs,
+    alignItems: 'center',
+    backgroundColor: 'rgba(193,122,58,0.20)',
+    paddingHorizontal: space.md,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    marginTop: space.md,
   },
-  levelText: { fontWeight: '700', fontSize: 13 },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: 16, gap: 10 },
+  levelText: { fontFamily: font.semibold, fontSize: size.sm, color: colors.amber },
+
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    margin: space.lg,
+    gap: space.sm,
+  },
   statCell: {
-    backgroundColor: COLORS.card, borderRadius: 14, padding: 16,
-    alignItems: 'center', width: '47%', elevation: 2,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: space.lg,
+    alignItems: 'flex-start',
+    width: '47%',
+    ...shadow.sm,
   },
-  statVal: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginTop: 6 },
-  statLabel: { fontSize: 12, color: '#888', marginTop: 2 },
-  card: { backgroundColor: COLORS.card, marginHorizontal: 16, borderRadius: 16, padding: 16, elevation: 2, marginBottom: 12 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  badgesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  statVal: { fontFamily: font.extrabold, fontSize: size.xl, color: colors.ink, marginTop: space.sm },
+  statLabel: {
+    fontFamily: font.medium,
+    fontSize: size.xs,
+    color: colors.stone400,
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+
+  card: {
+    backgroundColor: colors.surface,
+    marginHorizontal: space.lg,
+    borderRadius: radius.md,
+    padding: space.lg,
+    ...shadow.sm,
+    marginBottom: space.sm,
+  },
+  sectionTitle: {
+    fontFamily: font.semibold,
+    fontSize: size.sm,
+    color: colors.stone600,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: space.md,
+  },
+  badgesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   matBadge: {
-    flexDirection: 'row', gap: 6, alignItems: 'center',
-    backgroundColor: COLORS.primary + '12', borderRadius: 20,
-    paddingHorizontal: 12, paddingVertical: 8,
+    flexDirection: 'row', gap: 5, alignItems: 'center',
+    backgroundColor: colors.sageFaint,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: 7,
   },
-  matLabel: { color: COLORS.primary, fontWeight: '600', fontSize: 13 },
-  matCount: { color: COLORS.secondary, fontWeight: '700', fontSize: 13 },
+  matLabel: { fontFamily: font.semibold, fontSize: size.sm, color: colors.forest },
+  matCount: { fontFamily: font.bold, fontSize: size.sm, color: colors.canopy },
+
   logoutBtn: {
-    flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center',
-    marginHorizontal: 16, marginTop: 8, borderWidth: 1, borderColor: '#E57373',
-    borderRadius: 12, paddingVertical: 14,
+    flexDirection: 'row', gap: space.sm, alignItems: 'center', justifyContent: 'center',
+    marginHorizontal: space.lg, marginTop: space.sm,
+    borderWidth: 1, borderColor: colors.stone200,
+    borderRadius: radius.md, paddingVertical: space.md,
+    backgroundColor: colors.surface,
   },
-  logoutText: { color: '#E57373', fontWeight: '600', fontSize: 15 },
+  logoutText: { fontFamily: font.semibold, fontSize: size.base, color: colors.errorText },
+
   menuOverlay: { flex: 1 },
   menuCard: {
-    position: 'absolute', right: 12,
-    backgroundColor: '#FFF', borderRadius: 10,
-    paddingVertical: 4,
-    elevation: 8,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15, shadowRadius: 8,
+    position: 'absolute', right: space.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingVertical: space.xs,
+    ...shadow.lg,
     minWidth: 170,
   },
   menuItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 16, paddingVertical: 12,
+    flexDirection: 'row', alignItems: 'center', gap: space.sm,
+    paddingHorizontal: space.lg, paddingVertical: space.md,
   },
-  menuItemText: { fontSize: 14, color: '#444' },
+  menuItemText: { fontFamily: font.regular, fontSize: size.base, color: colors.stone600 },
 });

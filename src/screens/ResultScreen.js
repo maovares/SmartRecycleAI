@@ -7,24 +7,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { saveRecycleHistory } from '../services/storageService';
-
-const COLORS = {
-  primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
-  background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
-};
+import { colors, font, size, space, radius, shadow } from '../theme';
 
 export default function ResultScreen({ navigation, route }) {
   const { result, fromHistory = false } = route.params;
   const { user, setEcoPoints } = useAuth();
   const insets = useSafeAreaInsets();
   const pointsAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.5)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const saved = useRef(false);
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(pointsAnim, { toValue: 1, duration: 600, delay: 300, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 5, delay: 300, useNativeDriver: true }),
+      Animated.timing(pointsAnim, { toValue: 1, duration: 500, delay: 200, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 6, delay: 200, useNativeDriver: true }),
     ]).start();
 
     if (!fromHistory && user && !saved.current) {
@@ -35,39 +31,56 @@ export default function ResultScreen({ navigation, route }) {
     }
   }, []);
 
-  const recyclableColor = result.recyclable ? COLORS.secondary : '#E57373';
-  const recyclableLabel = result.recyclable ? '✅ Reciclable' : '❌ No reciclable';
+  const recyclable = result.recyclable;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingBottom: Math.max(40, insets.bottom + 24) }]}>
-      {/* Object & material */}
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingBottom: Math.max(40, insets.bottom + 24) }]}
+    >
+      {/* Object card */}
       <View style={styles.card}>
         <Text style={styles.objectName}>{result.object}</Text>
         <View style={styles.badgeRow}>
           <View style={styles.materialBadge}>
             <Text style={styles.materialText}>{result.material}</Text>
           </View>
-          <View style={[styles.recyclableBadge, { backgroundColor: recyclableColor + '22', borderColor: recyclableColor }]}>
-            <Text style={[styles.recyclableText, { color: recyclableColor }]}>{recyclableLabel}</Text>
+          <View style={[
+            styles.recyclableBadge,
+            { backgroundColor: recyclable ? colors.successBg : colors.errorBg }
+          ]}>
+            <Ionicons
+              name={recyclable ? 'checkmark-circle' : 'close-circle'}
+              size={14}
+              color={recyclable ? colors.successText : colors.errorText}
+            />
+            <Text style={[
+              styles.recyclableText,
+              { color: recyclable ? colors.successText : colors.errorText }
+            ]}>
+              {recyclable ? 'Reciclable' : 'No reciclable'}
+            </Text>
           </View>
         </View>
       </View>
 
-      {/* Points animation */}
+      {/* Points */}
       <Animated.View style={[styles.pointsCard, { opacity: pointsAnim, transform: [{ scale: scaleAnim }] }]}>
-        <Ionicons name="leaf" size={28} color={COLORS.accent} />
+        <View style={styles.pointsLeft}>
+          <Ionicons name="leaf" size={20} color={colors.amber} />
+          <Text style={styles.pointsLabel}>EcoPoints ganados</Text>
+        </View>
         <Text style={styles.pointsNum}>+{result.points}</Text>
-        <Text style={styles.pointsLabel}>EcoPoints ganados</Text>
       </Animated.View>
 
       {/* Instructions */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>
-          <Ionicons name="list-outline" size={18} /> Instrucciones de reciclaje
-        </Text>
+        <Text style={styles.sectionTitle}>Instrucciones</Text>
         {result.instructions.map((step, i) => (
           <View key={i} style={styles.instructionRow}>
-            <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
+            <View style={styles.stepNum}>
+              <Text style={styles.stepNumText}>{i + 1}</Text>
+            </View>
             <Text style={styles.instructionText}>{step}</Text>
           </View>
         ))}
@@ -75,18 +88,16 @@ export default function ResultScreen({ navigation, route }) {
 
       {/* Impact */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>
-          <Ionicons name="earth-outline" size={18} /> Impacto ambiental
-        </Text>
+        <Text style={styles.sectionTitle}>Impacto ambiental</Text>
         <View style={styles.impactRow}>
           <View style={styles.impactItem}>
-            <Ionicons name="cloud-outline" size={26} color={COLORS.primary} />
+            <Ionicons name="cloud-outline" size={24} color={colors.canopy} />
             <Text style={styles.impactNum}>{result.impact?.co2_kg ?? 0} kg</Text>
             <Text style={styles.impactLabel}>CO₂ evitado</Text>
           </View>
           {result.impact?.water_l != null && (
-            <View style={styles.impactItem}>
-              <Ionicons name="water-outline" size={26} color="#5C9BD6" />
+            <View style={[styles.impactItem, styles.impactBorder]}>
+              <Ionicons name="water-outline" size={24} color={colors.canopy} />
               <Text style={styles.impactNum}>{result.impact.water_l} L</Text>
               <Text style={styles.impactLabel}>Agua ahorrada</Text>
             </View>
@@ -94,19 +105,16 @@ export default function ResultScreen({ navigation, route }) {
         </View>
       </View>
 
-      {/* Nearest centers — only shown for fresh scans */}
+      {/* Nearest centers */}
       {result.nearest_centers?.length > 0 && (
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>
-            <Ionicons name="location-outline" size={18} /> Centros cercanos
-          </Text>
-          <Text style={styles.centerDisclaimer}>
+          <Text style={styles.sectionTitle}>Centros cercanos</Text>
+          <Text style={styles.disclaimer}>
             Verifica que acepten {result.material} antes de visitar.
           </Text>
           {result.nearest_centers.map((center, i) => (
-            <View key={center.id} style={[styles.centerRow, i > 0 && styles.centerRowBorder]}>
-              <Ionicons name="business-outline" size={20} color={COLORS.primary} />
-              <View style={{ marginLeft: 12, flex: 1 }}>
+            <View key={center.id} style={[styles.centerRow, i > 0 && styles.centerBorder]}>
+              <View style={styles.centerInfo}>
                 <Text style={styles.centerName} numberOfLines={1}>{center.name}</Text>
                 {center.address ? (
                   <Text style={styles.centerAddr} numberOfLines={1}>{center.address}</Text>
@@ -115,14 +123,20 @@ export default function ResultScreen({ navigation, route }) {
               </View>
               <View style={styles.centerActions}>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(center.name)}&query_place_id=${center.id}`)}
+                  style={styles.centerBtn}
+                  onPress={() => Linking.openURL(
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(center.name)}&query_place_id=${center.id}`
+                  )}
                 >
-                  <Ionicons name="information-circle-outline" size={22} color={COLORS.primary} />
+                  <Ionicons name="information-circle-outline" size={20} color={colors.forest} />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${center.lat},${center.lng}&travelmode=driving`)}
+                  style={[styles.centerBtn, styles.centerBtnPrimary]}
+                  onPress={() => Linking.openURL(
+                    `https://www.google.com/maps/dir/?api=1&destination=${center.lat},${center.lng}&travelmode=driving`
+                  )}
                 >
-                  <Ionicons name="navigate-outline" size={22} color={COLORS.primary} />
+                  <Ionicons name="navigate" size={16} color={colors.white} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -132,29 +146,24 @@ export default function ResultScreen({ navigation, route }) {
 
       {/* Actions */}
       {fromHistory ? (
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.primaryBtn, { flex: 1 }]}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back-outline" size={18} color="#FFF" />
-            <Text style={styles.primaryBtnText}>Volver</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-outline" size={18} color={colors.white} />
+          <Text style={styles.primaryBtnText}>Volver</Text>
+        </TouchableOpacity>
       ) : (
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.secondaryBtn}
             onPress={() => navigation.navigate('Main', { screen: 'Centers' })}
           >
-            <Ionicons name="location-outline" size={18} color={COLORS.primary} />
+            <Ionicons name="location-outline" size={17} color={colors.forest} />
             <Text style={styles.secondaryBtnText}>Ver centros</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() => navigation.navigate('Main', { screen: 'Scan' })}
           >
-            <Ionicons name="scan-outline" size={18} color="#FFF" />
+            <Ionicons name="scan-outline" size={17} color={colors.white} />
             <Text style={styles.primaryBtnText}>Escanear otro</Text>
           </TouchableOpacity>
         </View>
@@ -164,57 +173,114 @@ export default function ResultScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
+  screen: { flex: 1, backgroundColor: colors.bark },
+  content: { padding: space.lg, gap: space.sm },
+
   card: {
-    backgroundColor: COLORS.card, borderRadius: 16, padding: 16,
-    marginBottom: 12, elevation: 2,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: space.lg,
+    ...shadow.sm,
   },
-  objectName: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginBottom: 10 },
-  badgeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+
+  objectName: {
+    fontFamily: font.display,
+    fontSize: size.lg,
+    color: colors.ink,
+    marginBottom: space.md,
+    letterSpacing: 0.2,
+  },
+  badgeRow: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
   materialBadge: {
-    backgroundColor: COLORS.primary + '18', borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 6,
+    backgroundColor: colors.sageFaint,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
   },
-  materialText: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
+  materialText: { fontFamily: font.semibold, fontSize: size.sm, color: colors.canopy },
   recyclableBadge: {
-    borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
   },
-  recyclableText: { fontWeight: '700', fontSize: 13 },
+  recyclableText: { fontFamily: font.semibold, fontSize: size.sm },
+
   pointsCard: {
-    backgroundColor: COLORS.primary, borderRadius: 16, padding: 20,
-    alignItems: 'center', marginBottom: 12, flexDirection: 'row', gap: 12, justifyContent: 'center',
+    backgroundColor: colors.forest,
+    borderRadius: radius.md,
+    padding: space.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...shadow.md,
   },
-  pointsNum: { fontSize: 32, fontWeight: '900', color: '#FFF' },
-  pointsLabel: { fontSize: 14, color: 'rgba(255,255,255,0.85)' },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  instructionRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 10 },
+  pointsLeft: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  pointsLabel: { fontFamily: font.medium, fontSize: size.base, color: 'rgba(255,255,255,0.80)' },
+  pointsNum: { fontFamily: font.extrabold, fontSize: size.xxl, color: colors.amber },
+
+  sectionTitle: {
+    fontFamily: font.semibold,
+    fontSize: size.sm,
+    color: colors.stone600,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: space.md,
+  },
+  instructionRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: space.md, gap: space.sm },
   stepNum: {
-    width: 26, height: 26, borderRadius: 13, backgroundColor: COLORS.accent,
+    width: 24, height: 24, borderRadius: radius.pill,
+    backgroundColor: colors.sageFaint,
+    alignItems: 'center', justifyContent: 'center', marginTop: 1,
+  },
+  stepNumText: { fontFamily: font.bold, fontSize: size.xs, color: colors.canopy },
+  instructionText: { flex: 1, fontFamily: font.regular, fontSize: size.base, color: colors.stone600, lineHeight: 22 },
+
+  impactRow: { flexDirection: 'row' },
+  impactItem: { flex: 1, alignItems: 'center', paddingVertical: space.sm },
+  impactBorder: { borderLeftWidth: 1, borderLeftColor: colors.stone100 },
+  impactNum: { fontFamily: font.extrabold, fontSize: size.lg, color: colors.ink, marginTop: space.xs },
+  impactLabel: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, marginTop: 2 },
+
+  disclaimer: {
+    fontFamily: font.regular,
+    fontSize: size.xs,
+    color: colors.stone400,
+    fontStyle: 'italic',
+    marginBottom: space.md,
+  },
+  centerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.md, gap: space.sm },
+  centerBorder: { borderTopWidth: 1, borderTopColor: colors.stone100 },
+  centerInfo: { flex: 1 },
+  centerName: { fontFamily: font.semibold, fontSize: size.base, color: colors.ink },
+  centerAddr: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, marginTop: 2 },
+  centerDist: { fontFamily: font.bold, fontSize: size.sm, color: colors.canopy, marginTop: 3 },
+  centerActions: { flexDirection: 'row', gap: space.sm },
+  centerBtn: {
+    width: 36, height: 36, borderRadius: radius.sm,
+    backgroundColor: colors.sageFaint,
     alignItems: 'center', justifyContent: 'center',
   },
-  stepNumText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  instructionText: { flex: 1, color: '#444', lineHeight: 20, fontSize: 14 },
-  impactRow: { flexDirection: 'row', gap: 16 },
-  impactItem: { flex: 1, alignItems: 'center', paddingVertical: 8 },
-  impactNum: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginTop: 4 },
-  impactLabel: { fontSize: 12, color: '#888', marginTop: 2 },
-  centerDisclaimer: { fontSize: 12, color: '#888', fontStyle: 'italic', marginBottom: 12 },
-  centerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  centerRowBorder: { borderTopWidth: 1, borderTopColor: '#F0F0F0' },
-  centerName: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  centerAddr: { fontSize: 11, color: '#999', marginTop: 1 },
-  centerDist: { fontSize: 12, color: COLORS.primary, fontWeight: '600', marginTop: 2 },
-  centerActions: { flexDirection: 'row', gap: 14, marginLeft: 8 },
-  actionsRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  centerBtnPrimary: { backgroundColor: colors.forest },
+
+  actionsRow: { flexDirection: 'row', gap: space.sm },
   primaryBtn: {
-    flex: 2, flexDirection: 'row', gap: 8, backgroundColor: COLORS.primary,
-    borderRadius: 12, paddingVertical: 15, justifyContent: 'center', alignItems: 'center',
+    flex: 2, flexDirection: 'row', gap: space.sm,
+    backgroundColor: colors.forest,
+    borderRadius: radius.md,
+    paddingVertical: space.lg,
+    justifyContent: 'center', alignItems: 'center',
+    ...shadow.sm,
   },
-  primaryBtnText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+  primaryBtnText: { fontFamily: font.bold, fontSize: size.base, color: colors.white },
   secondaryBtn: {
-    flex: 1, flexDirection: 'row', gap: 8, borderWidth: 1.5, borderColor: COLORS.primary,
-    borderRadius: 12, paddingVertical: 15, justifyContent: 'center', alignItems: 'center',
+    flex: 1, flexDirection: 'row', gap: space.sm,
+    borderWidth: 1.5, borderColor: colors.stone200,
+    borderRadius: radius.md,
+    paddingVertical: space.lg,
+    justifyContent: 'center', alignItems: 'center',
   },
-  secondaryBtnText: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
+  secondaryBtnText: { fontFamily: font.semibold, fontSize: size.sm, color: colors.forest },
 });

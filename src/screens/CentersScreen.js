@@ -1,19 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, Linking, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View, Text, ScrollView, RefreshControl, StyleSheet,
+  Linking, TouchableOpacity, ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocation } from '../context/LocationContext';
 import { fetchNearbyCenters } from '../services/apiService';
-
-const COLORS = {
-  primary: '#0F6E56', secondary: '#1D9E75', accent: '#5DCAA5',
-  background: '#F5F5F5', text: '#1A1A1A', card: '#FFFFFF',
-};
+import { colors, font, size, space, radius, shadow } from '../theme';
 
 function openNavigation(lat, lng) {
   Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`);
 }
-
 function openDetail(placeId, name) {
   Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${placeId}`);
 }
@@ -55,30 +53,33 @@ export default function CentersScreen() {
     <ScrollView
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingBottom: Math.max(32, insets.bottom + 16) }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} tintColor={COLORS.primary} />}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.forest} />
+      }
     >
-      <View style={styles.headerBg}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: Math.max(56, insets.top + 16) }]}>
         <Text style={styles.headerTitle}>Centros de acopio</Text>
         <View style={styles.headerSubRow}>
           {status === 'loading' ? (
             <>
-              <ActivityIndicator size="small" color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>  Buscando centros cercanos…</Text>
+              <ActivityIndicator size="small" color="rgba(255,255,255,0.6)" />
+              <Text style={styles.headerSub}> Buscando centros…</Text>
             </>
           ) : status === 'ready' ? (
             <>
-              <Ionicons name="location" size={13} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>  {placeName || 'Tu ubicación'} · {centers.length} centros</Text>
+              <Ionicons name="location" size={12} color="rgba(255,255,255,0.6)" />
+              <Text style={styles.headerSub}> {placeName || 'Tu ubicación'} · {centers.length} resultados</Text>
             </>
           ) : status === 'denied' ? (
             <>
-              <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>  Permiso de ubicación requerido</Text>
+              <Ionicons name="location-outline" size={12} color="rgba(255,255,255,0.6)" />
+              <Text style={styles.headerSub}> Permiso de ubicación requerido</Text>
             </>
           ) : (
             <>
-              <Ionicons name="warning-outline" size={13} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>  Error al cargar centros</Text>
+              <Ionicons name="warning-outline" size={12} color="rgba(255,255,255,0.6)" />
+              <Text style={styles.headerSub}> Error al cargar</Text>
             </>
           )}
         </View>
@@ -86,16 +87,16 @@ export default function CentersScreen() {
 
       {status === 'ready' && centers.length === 0 && (
         <View style={styles.emptyState}>
-          <Ionicons name="search-outline" size={48} color="#CCC" />
-          <Text style={styles.emptyText}>No se encontraron centros cercanos.</Text>
+          <Ionicons name="search-outline" size={44} color={colors.stone200} />
+          <Text style={styles.emptyText}>Sin centros en el área</Text>
           <Text style={styles.emptySubText}>Intentá ampliar el radio de búsqueda.</Text>
         </View>
       )}
 
       {status === 'error' && (
         <View style={styles.emptyState}>
-          <Ionicons name="cloud-offline-outline" size={48} color="#CCC" />
-          <Text style={styles.emptyText}>No se pudo cargar la información.</Text>
+          <Ionicons name="cloud-offline-outline" size={44} color={colors.stone200} />
+          <Text style={styles.emptyText}>No se pudo cargar</Text>
           <Text style={styles.emptySubText}>{error}</Text>
         </View>
       )}
@@ -105,10 +106,12 @@ export default function CentersScreen() {
           <View style={styles.cardHeader}>
             <View style={{ flex: 1 }}>
               <Text style={styles.centerName}>{center.name}</Text>
-              <View style={styles.addressRow}>
-                <Ionicons name="location-outline" size={14} color="#888" />
-                <Text style={styles.address}>{center.address}</Text>
-              </View>
+              {center.address ? (
+                <View style={styles.addressRow}>
+                  <Ionicons name="location-outline" size={12} color={colors.stone400} />
+                  <Text style={styles.address} numberOfLines={1}>{center.address}</Text>
+                </View>
+              ) : null}
             </View>
             {center.distance_km != null && (
               <View style={styles.distBadge}>
@@ -118,28 +121,37 @@ export default function CentersScreen() {
           </View>
 
           {center.open_now != null && (
-            <View style={styles.infoRow}>
-              <View style={[styles.openBadge, { backgroundColor: center.open_now ? '#E8F5E9' : '#FFEBEE' }]}>
-                <Text style={[styles.openText, { color: center.open_now ? '#2E7D32' : '#C62828' }]}>
-                  {center.open_now ? 'Abierto' : 'Cerrado'}
-                </Text>
-              </View>
+            <View style={[
+              styles.openBadge,
+              { backgroundColor: center.open_now ? colors.successBg : colors.errorBg }
+            ]}>
+              <View style={[
+                styles.openDot,
+                { backgroundColor: center.open_now ? colors.successText : colors.errorText }
+              ]} />
+              <Text style={[
+                styles.openText,
+                { color: center.open_now ? colors.successText : colors.errorText }
+              ]}>
+                {center.open_now ? 'Abierto' : 'Cerrado'}
+              </Text>
             </View>
           )}
 
           <View style={styles.actionsRow}>
-            <View style={{ flex: 1 }} />
             <TouchableOpacity
-              style={[styles.actionBtn, styles.actionBtnSecondary]}
+              style={styles.actionBtnSecondary}
               onPress={() => openDetail(center.id, center.name)}
             >
-              <Ionicons name="information-circle-outline" size={16} color={COLORS.primary} />
+              <Ionicons name="information-circle-outline" size={16} color={colors.forest} />
+              <Text style={styles.actionBtnSecondaryText}>Detalle</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => openNavigation(center.lat, center.lng)}
             >
-              <Ionicons name="navigate" size={16} color="#FFF" />
+              <Ionicons name="navigate" size={14} color={colors.white} />
+              <Text style={styles.actionBtnText}>Cómo llegar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -149,41 +161,85 @@ export default function CentersScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
+  screen: { flex: 1, backgroundColor: colors.bark },
   content: {},
-  headerBg: { backgroundColor: COLORS.primary, paddingTop: 56, paddingBottom: 24, paddingHorizontal: 20 },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#FFF' },
-  headerSubRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
-  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: '#999', marginTop: 16, textAlign: 'center' },
-  emptySubText: { fontSize: 13, color: '#BBB', marginTop: 6, textAlign: 'center' },
+
+  header: {
+    backgroundColor: colors.forest,
+    paddingBottom: space.xl,
+    paddingHorizontal: space.xl,
+    marginBottom: space.sm,
+  },
+  headerTitle: { fontFamily: font.display, fontSize: size.xl, color: colors.white },
+  headerSubRow: { flexDirection: 'row', alignItems: 'center', marginTop: space.xs },
+  headerSub: { fontFamily: font.regular, fontSize: size.sm, color: 'rgba(255,255,255,0.60)' },
+
+  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: space.xxl },
+  emptyText: { fontFamily: font.semibold, fontSize: size.base, color: colors.stone400, marginTop: space.lg },
+  emptySubText: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone400, marginTop: space.xs, textAlign: 'center' },
+
   card: {
-    backgroundColor: COLORS.card, marginHorizontal: 16, marginTop: 12,
-    borderRadius: 16, padding: 16, elevation: 2,
+    backgroundColor: colors.surface,
+    marginHorizontal: space.lg,
+    marginTop: space.sm,
+    borderRadius: radius.md,
+    padding: space.lg,
+    ...shadow.sm,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  centerName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  addressRow: { flexDirection: 'row', gap: 4, alignItems: 'center', marginTop: 3 },
-  address: { fontSize: 12, color: '#888', flex: 1 },
-  distBadge: { backgroundColor: COLORS.primary + '15', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  distText: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
-  infoRow: { marginBottom: 10 },
-  openBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
-  openText: { fontSize: 11, fontWeight: '700' },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: space.sm },
+  centerName: { fontFamily: font.semibold, fontSize: size.base, color: colors.ink },
+  addressRow: { flexDirection: 'row', gap: space.xs, alignItems: 'center', marginTop: 3 },
+  address: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, flex: 1 },
+  distBadge: {
+    backgroundColor: colors.sageFaint,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.sm,
+    paddingVertical: space.xs,
+    marginLeft: space.sm,
+  },
+  distText: { fontFamily: font.bold, fontSize: size.sm, color: colors.canopy },
+
+  openBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    paddingHorizontal: space.sm,
+    paddingVertical: 4,
+    marginBottom: space.md,
+  },
+  openDot: { width: 6, height: 6, borderRadius: radius.pill },
+  openText: { fontFamily: font.medium, fontSize: size.xs },
+
   actionsRow: {
-    flexDirection: 'row', alignItems: 'center',
-    borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 10,
-  },
-  actionsRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 10,
-  },
-  actionBtn: {
-    backgroundColor: COLORS.primary, borderRadius: 10,
-    padding: 8, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row',
+    gap: space.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.stone100,
+    paddingTop: space.md,
   },
   actionBtnSecondary: {
-    backgroundColor: COLORS.primary + '15',
+    flex: 1,
+    flexDirection: 'row',
+    gap: space.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.stone200,
+    borderRadius: radius.sm,
+    paddingVertical: space.sm,
   },
+  actionBtnSecondaryText: { fontFamily: font.medium, fontSize: size.sm, color: colors.forest },
+  actionBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    gap: space.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.forest,
+    borderRadius: radius.sm,
+    paddingVertical: space.sm,
+  },
+  actionBtnText: { fontFamily: font.bold, fontSize: size.sm, color: colors.white },
 });
