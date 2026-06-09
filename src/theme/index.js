@@ -42,7 +42,7 @@ export const colors = {
 
 // ── Typography ───────────────────────────────────────────────────────────────
 export const font = {
-  display:   'DMSerifDisplay_400Regular',   // títulos con carácter
+  display:   'DMSans_700Bold',
   regular:   'DMSans_400Regular',
   medium:    'DMSans_500Medium',
   semibold:  'DMSans_600SemiBold',

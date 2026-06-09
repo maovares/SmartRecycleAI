@@ -75,6 +75,10 @@ export async function updateEcoPoints(uid, points) {
   });
 }
 
+export async function updateUserPhoto(uid, photoBase64) {
+  await updateDoc(doc(db, 'users', uid), { photoBase64 });
+}
+
 export async function resetUserData(uid) {
   await setDoc(doc(db, 'users', uid), {
     uid,

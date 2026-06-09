@@ -41,3 +41,8 @@ export async function getIdToken() {
   if (user) return user.getIdToken();
   throw new Error('No hay sesión activa');
 }
+
+export async function updateUserDisplayName(name) {
+  const user = auth.currentUser;
+  if (user) await user.updateProfile({ displayName: name });
+}

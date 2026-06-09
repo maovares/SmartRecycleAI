@@ -54,8 +54,8 @@ export default function HomeScreen({ navigation }) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: Math.max(56, insets.top + 16) }]}>
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.greeting}>Hola, {firstName}</Text>
+          <View style={styles.greetingWrap}>
+            <Text style={styles.greeting} numberOfLines={1}>Hola, {firstName}</Text>
             <Text style={styles.subGreeting}>Sigamos reciclando</Text>
           </View>
           {profile && <EcoPointsBadge points={profile.ecoPoints} large />}
@@ -142,7 +142,7 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bark },
-  content: { paddingBottom: space.xxxl },
+  content: { paddingBottom: space.xl },
 
   header: {
     backgroundColor: colors.forest,
@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.xl,
   },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  greetingWrap: { flex: 1, marginRight: space.md },
   greeting: {
     fontFamily: font.display,
     fontSize: size.xl,
