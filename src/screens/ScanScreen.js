@@ -120,37 +120,36 @@ export default function ScanScreen({ navigation }) {
 
   return (
     <View style={styles.screen}>
-      <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
-        <View style={styles.guideFrame} />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing={facing} />
 
-        <View style={styles.topBar}>
-          <Text style={styles.topBarText}>Centra el residuo en el marco</Text>
-        </View>
+      <View style={styles.guideFrame} />
 
-        <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.sideBtn} onPress={handleGallery}>
-            <Ionicons name="images-outline" size={26} color={colors.white} />
-          </TouchableOpacity>
+      <View style={styles.topBar}>
+        <Text style={styles.topBarText}>Centra el residuo en el marco</Text>
+      </View>
 
-          <TouchableOpacity style={styles.captureBtn} onPress={handleCapture}>
-            <View style={styles.captureBtnInner} />
-          </TouchableOpacity>
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.sideBtn} onPress={handleGallery}>
+          <Ionicons name="images-outline" size={26} color={colors.white} />
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.sideBtn}
-            onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}
-          >
-            <Ionicons name="camera-reverse-outline" size={26} color={colors.white} />
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+        <TouchableOpacity style={styles.captureBtn} onPress={handleCapture}>
+          <View style={styles.captureBtnInner} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.sideBtn}
+          onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}
+        >
+          <Ionicons name="camera-reverse-outline" size={26} color={colors.white} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#000' },
-  camera: { flex: 1 },
 
   guideFrame: {
     position: 'absolute', top: '25%', left: '15%', right: '15%', bottom: '25%',
