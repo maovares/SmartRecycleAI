@@ -2,6 +2,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { colors, font, shadow } from '../theme';
 
@@ -18,6 +19,8 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -29,6 +32,8 @@ function MainTabs() {
           borderTopColor: colors.stone100,
           borderTopWidth: 1,
           paddingTop: 6,
+          paddingBottom: insets.bottom || 8,
+          height: 58 + (insets.bottom || 0),
           ...shadow.sm,
           elevation: 3,
         },

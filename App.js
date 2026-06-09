@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import {
   DMSans_400Regular,
@@ -35,13 +36,15 @@ export default function App() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <AuthProvider>
-      <LocationProvider>
-        <NavigationContainer>
-          <StatusBar style="light" backgroundColor="#1B4332" />
-          <AppNavigator />
-        </NavigationContainer>
-      </LocationProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <LocationProvider>
+          <NavigationContainer>
+            <StatusBar style="light" backgroundColor="#1B4332" />
+            <AppNavigator />
+          </NavigationContainer>
+        </LocationProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
