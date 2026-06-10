@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl, ActivityIndicator,
@@ -7,12 +7,18 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useColors } from '../context/ThemeContext';
+import { useI18n } from '../i18n';
 import { getFullHistory } from '../services/storageService';
-import { colors, font, size, space, radius, shadow } from '../theme';
+import { font, size, space, radius, shadow } from '../theme';
 
 export default function HistoryScreen({ navigation }) {
+  const colors = useColors();
+  const { t } = useI18n();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,10 +53,7 @@ export default function HistoryScreen({ navigation }) {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            { paddingBottom: Math.max(32, insets.bottom + 16) }
-          ]}
+          contentContainerStyle={[styles.content, { paddingBottom: Math.max(32, insets.bottom + 16) }]}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.forest} />
           }
@@ -58,8 +61,8 @@ export default function HistoryScreen({ navigation }) {
           {history.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="leaf-outline" size={48} color={colors.sage} />
-              <Text style={styles.emptyTitle}>Sin ítems aún</Text>
-              <Text style={styles.emptyText}>Escanea tu primer residuo para empezar.</Text>
+              <Text style={styles.emptyTitle}>{t('history.empty')}</Text>
+              <Text style={styles.emptyText}>{t('history.emptyHint')}</Text>
             </View>
           ) : (
             history.map((item) => (
@@ -69,10 +72,8 @@ export default function HistoryScreen({ navigation }) {
                 activeOpacity={0.75}
                 onPress={() => navigation.navigate('Result', { result: item, fromHistory: true })}
               >
-                <View style={[
-                  styles.statusDot,
-                  { backgroundColor: item.recyclable ? colors.successBg : colors.errorBg }
-                ]}>
+                <View style={[styles.statusDot,
+                  { backgroundColor: item.recyclable ? colors.successBg : colors.errorBg }]}>
                   <Ionicons
                     name={item.recyclable ? 'checkmark' : 'close'}
                     size={14}
@@ -104,35 +105,25 @@ export default function HistoryScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bark },
-
+const makeStyles = (c) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: c.bark },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: space.lg },
 
   emptyState: { alignItems: 'center', paddingTop: 60, gap: space.sm },
-  emptyTitle: { fontFamily: font.semibold, fontSize: size.base, color: colors.stone600 },
-  emptyText: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone400, textAlign: 'center' },
+  emptyTitle: { fontFamily: font.semibold, fontSize: size.base, color: c.stone600 },
+  emptyText: { fontFamily: font.regular, fontSize: size.sm, color: c.stone400, textAlign: 'center' },
 
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: space.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: space.sm,
-    gap: space.md,
-    ...shadow.sm,
+    backgroundColor: c.surface, borderRadius: radius.md, padding: space.md,
+    flexDirection: 'row', alignItems: 'center', marginBottom: space.sm, gap: space.md, ...shadow.sm,
   },
-  statusDot: {
-    width: 32, height: 32, borderRadius: radius.pill,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  statusDot: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   cardBody: { flex: 1 },
-  cardObj: { fontFamily: font.semibold, fontSize: size.base, color: colors.ink },
-  cardMat: { fontFamily: font.regular, fontSize: size.sm, color: colors.stone400, marginTop: 2 },
-  cardDate: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, marginTop: 3 },
+  cardObj: { fontFamily: font.semibold, fontSize: size.base, color: c.ink },
+  cardMat: { fontFamily: font.regular, fontSize: size.sm, color: c.stone400, marginTop: 2 },
+  cardDate: { fontFamily: font.regular, fontSize: size.xs, color: c.stone400, marginTop: 3 },
   cardRight: { alignItems: 'center' },
-  cardPts: { fontFamily: font.extrabold, fontSize: size.md, color: colors.forest },
-  cardPtsLabel: { fontFamily: font.medium, fontSize: size.xs, color: colors.canopy, marginTop: -2 },
+  cardPts: { fontFamily: font.extrabold, fontSize: size.md, color: c.forest },
+  cardPtsLabel: { fontFamily: font.medium, fontSize: size.xs, color: c.canopy, marginTop: -2 },
 });

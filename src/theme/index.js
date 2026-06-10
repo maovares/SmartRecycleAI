@@ -1,33 +1,26 @@
 // ─── SmartRecycle AI — Design System ────────────────────────────────────────
-// Aligned to Material Design 3 color roles while staying cross-platform.
-// M3 role annotations appear inline → primary, onPrimary, primaryContainer, etc.
 
-// ── Colors ──────────────────────────────────────────────────────────────────
-export const colors = {
-  // ── Primary (M3: primary / onPrimary / primaryContainer / onPrimaryContainer)
-  forest:    '#1B4332',   // primary — brand anchor, headers, filled buttons
-  canopy:    '#2A7850',   // secondary — supporting labels, active accents (5:1 on white ✓)
-  sage:      '#62B88E',   // decorative accent — icons, illustrations
-  sageFaint: '#D0EDDF',   // primaryContainer — pill indicators, badges, step numbers
+export const lightColors = {
+  forest:    '#1B4332',
+  canopy:    '#2A7850',
+  sage:      '#62B88E',
+  sageFaint: '#D0EDDF',
 
-  // ── Tertiary (M3: tertiary / tertiaryContainer)
-  amber:      '#F07058',  // tertiary — coral accent, EcoPoints, CTAs
-  amberDark:  '#D35640',  // tertiary pressed / dark
-  amberLight: '#FDE8E2',  // tertiaryContainer — soft coral backgrounds
-  amberFaint: '#FFF2EE',  // tertiaryContainer subtle
+  amber:      '#F07058',
+  amberDark:  '#D35640',
+  amberLight: '#FDE8E2',
+  amberFaint: '#FFF2EE',
 
-  // ── Surface & background (M3: background, surface, surfaceContainer, outline)
-  bark:     '#F5FBF4',   // background — app background (tone 98, green tint)
-  surface:  '#FFFFFF',   // surface / surfaceContainerLowest — cards
+  bark:     '#F5FBF4',
+  surface:  '#FFFFFF',
   stone50:  '#F7FAF8',
-  stone100: '#DCE9E4',   // outlineVariant — dividers, subtle borders
-  stone200: '#C6D8D2',   // surface border / placeholder outlines
-  outline:  '#6B7C74',   // M3 outline — component borders (buttons, text fields)
-  stone400: '#82A09A',   // onSurfaceVariant muted — inactive icons, tertiary text
-  stone600: '#4C6A63',   // onSurfaceVariant — secondary text
-  ink:      '#111D1A',   // onSurface — primary text
+  stone100: '#DCE9E4',
+  stone200: '#C6D8D2',
+  outline:  '#6B7C74',
+  stone400: '#82A09A',
+  stone600: '#4C6A63',
+  ink:      '#111D1A',
 
-  // ── Semantic
   successBg:   '#E3F2EB',
   successText: '#1B4332',
   errorBg:     '#FDE8E2',
@@ -35,12 +28,48 @@ export const colors = {
   warningBg:   '#FEF0E6',
   warningText: '#9E5010',
 
-  // ── Utility
   white:       '#FFFFFF',
   transparent: 'transparent',
   overlay:     'rgba(17, 29, 26, 0.45)',
   overlayDark: 'rgba(17, 29, 26, 0.72)',
 };
+
+export const darkColors = {
+  forest:    '#1B4332',
+  canopy:    '#4BAF7A',
+  sage:      '#62B88E',
+  sageFaint: '#162A1F',
+
+  amber:      '#F07058',
+  amberDark:  '#D35640',
+  amberLight: '#3D1E14',
+  amberFaint: '#2A1510',
+
+  bark:     '#0D1711',
+  surface:  '#172319',
+  stone50:  '#172319',
+  stone100: '#1F3029',
+  stone200: '#2A4036',
+  outline:  '#3A5246',
+  stone400: '#6E9088',
+  stone600: '#A8C2BA',
+  ink:      '#EAF5EE',
+
+  successBg:   '#162A1F',
+  successText: '#62B88E',
+  errorBg:     '#3D1E14',
+  errorText:   '#E8957F',
+  warningBg:   '#2D1E0E',
+  warningText: '#E8A07A',
+
+  white:       '#FFFFFF',
+  transparent: 'transparent',
+  overlay:     'rgba(0, 0, 0, 0.55)',
+  overlayDark: 'rgba(0, 0, 0, 0.78)',
+};
+
+// Kept for screens not yet updated — always light
+export const colors = lightColors;
 
 // ── Typography ───────────────────────────────────────────────────────────────
 export const font = {
@@ -63,7 +92,7 @@ export const size = {
   xxl:  32,
 };
 
-// ── Spacing (multiples of 4) ─────────────────────────────────────────────────
+// ── Spacing ──────────────────────────────────────────────────────────────────
 export const space = {
   xs:   4,
   sm:   8,
@@ -74,8 +103,7 @@ export const space = {
   xxxl: 48,
 };
 
-// ── Border radius (M3 shape scale) ──────────────────────────────────────────
-// Extra Small=4, Small=8, Medium=12, Large=16, Full=∞
+// ── Border radius ────────────────────────────────────────────────────────────
 export const radius = {
   xs:   4,
   sm:   8,
@@ -85,7 +113,6 @@ export const radius = {
 };
 
 // ── Shadows ──────────────────────────────────────────────────────────────────
-// shadowColor basado en el primario, no negro genérico
 export const shadow = {
   sm: {
     shadowColor: '#1B4332',

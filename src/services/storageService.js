@@ -50,14 +50,17 @@ export async function saveRecycleHistory(uid, result) {
   });
 
   const materialKey = (result.material || 'unknown').replace(/[./]/g, '_');
-  await updateDoc(doc(db, 'users', uid), {
+  const updates = {
     ecoPoints: increment(result.points || 0),
     totalScans: increment(1),
-    totalCo2: increment(result.impact?.co2_kg || 0),
-    totalWater: increment(result.impact?.water_l || 0),
     recyclableCount: increment(result.recyclable ? 1 : 0),
-    [`materials.${materialKey}`]: increment(1),
-  });
+  };
+  if (result.recyclable) {
+    updates.totalCo2 = increment(result.impact?.co2_kg || 0);
+    updates.totalWater = increment(result.impact?.water_l || 0);
+    updates[`materials.${materialKey}`] = increment(1);
+  }
+  await updateDoc(doc(db, 'users', uid), updates);
 }
 
 export async function getRecentHistory(uid, count = 3) {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, Image,
@@ -10,63 +10,65 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile, resetUserData, updateUserPhoto, updateUserProfileFields } from '../services/storageService';
+import { useColors } from '../context/ThemeContext';
+import { useI18n } from '../i18n';
+import { getUserProfile, resetUserData, updateUserProfileFields } from '../services/storageService';
 import { logout, updateUserDisplayName } from '../services/authService';
 import { useModal } from '../context/ModalContext';
-import { colors, font, size, space, radius, shadow } from '../theme';
+import { font, size, space, radius, shadow } from '../theme';
 
-const LEVELS = [
-  { name: 'Semilla',  icon: 'leaf-outline',   color: colors.sage,   min: 0,   max: 50  },
-  { name: 'Brote',    icon: 'flower-outline',  color: colors.canopy, min: 50,  max: 150 },
-  { name: 'Árbol',    icon: 'leaf',            color: colors.forest, min: 150, max: 350 },
-  { name: 'Bosque',   icon: 'earth-outline',   color: colors.forest, min: 350, max: 700 },
-  { name: 'Guardián', icon: 'planet-outline',  color: colors.ink,    min: 700, max: null },
+const LEVEL_KEYS = ['Semilla', 'Brote', 'Árbol', 'Bosque', 'Guardián'];
+const LEVEL_META = [
+  { icon: 'leaf-outline',   min: 0,   max: 50  },
+  { icon: 'flower-outline', min: 50,  max: 150 },
+  { icon: 'leaf',           min: 150, max: 350 },
+  { icon: 'earth-outline',  min: 350, max: 700 },
+  { icon: 'planet-outline', min: 700, max: null },
 ];
 
 function getLevel(points) {
-  return LEVELS.find(l => l.max === null || points < l.max) ?? LEVELS[LEVELS.length - 1];
+  return LEVEL_META.findIndex((l, i) => l.max === null || points < l.max);
 }
 
-function getLevelProgress(points) {
-  const lvl = getLevel(points);
-  if (!lvl.max) return { progress: 1, ptsToNext: 0, nextName: null };
-  const idx = LEVELS.indexOf(lvl);
+function getLevelProgress(points, idx) {
+  const lvl = LEVEL_META[idx];
+  if (!lvl.max) return { progress: 1, ptsToNext: 0, nextIdx: null };
   return {
     progress: (points - lvl.min) / (lvl.max - lvl.min),
     ptsToNext: lvl.max - points,
-    nextName: LEVELS[idx + 1]?.name ?? null,
+    nextIdx: idx + 1 < LEVEL_KEYS.length ? idx + 1 : null,
   };
 }
 
 const MATERIAL_ICONS = {
-  PET:          { icon: 'water-outline',           label: 'PET' },
-  Aluminio:     { icon: 'beer-outline',            label: 'Aluminio' },
-  Vidrio:       { icon: 'wine-outline',            label: 'Vidrio' },
-  Cristal:      { icon: 'wine-outline',            label: 'Cristal' },
-  Papel:        { icon: 'newspaper-outline',       label: 'Papel' },
-  Cartón:       { icon: 'cube-outline',            label: 'Cartón' },
-  Plástico:     { icon: 'bag-outline',             label: 'Plástico' },
-  Metal:        { icon: 'build-outline',           label: 'Metal' },
-  Acero:        { icon: 'build-outline',           label: 'Acero' },
-  Lata:         { icon: 'beer-outline',            label: 'Lata' },
-  Cobre:        { icon: 'build-outline',           label: 'Cobre' },
-  Orgánico:     { icon: 'nutrition-outline',       label: 'Orgánico' },
-  Textil:       { icon: 'shirt-outline',           label: 'Textil' },
-  Ropa:         { icon: 'shirt-outline',           label: 'Ropa' },
-  Tela:         { icon: 'shirt-outline',           label: 'Tela' },
-  Electrónico:  { icon: 'phone-portrait-outline',  label: 'Electrónico' },
-  Batería:      { icon: 'battery-half-outline',    label: 'Batería' },
-  Pila:         { icon: 'battery-half-outline',    label: 'Pila' },
-  Madera:       { icon: 'hammer-outline',          label: 'Madera' },
-  Tetrapack:    { icon: 'layers-outline',          label: 'Tetrapack' },
-  Poliestireno: { icon: 'snow-outline',            label: 'Poliestireno' },
-  Foam:         { icon: 'snow-outline',            label: 'Foam' },
-  Icopor:       { icon: 'snow-outline',            label: 'Icopor' },
-  Aceite:       { icon: 'flask-outline',           label: 'Aceite' },
-  Caucho:       { icon: 'disc-outline',            label: 'Caucho' },
-  Llanta:       { icon: 'disc-outline',            label: 'Llanta' },
-  Neumático:    { icon: 'disc-outline',            label: 'Neumático' },
-  Peligroso:    { icon: 'warning-outline',         label: 'Peligroso' },
+  PET:          'water-outline',
+  Aluminio:     'beer-outline',
+  Vidrio:       'wine-outline',
+  Cristal:      'wine-outline',
+  Papel:        'newspaper-outline',
+  Cartón:       'cube-outline',
+  Plástico:     'bag-outline',
+  Metal:        'build-outline',
+  Acero:        'build-outline',
+  Lata:         'beer-outline',
+  Cobre:        'build-outline',
+  Orgánico:     'nutrition-outline',
+  Textil:       'shirt-outline',
+  Ropa:         'shirt-outline',
+  Tela:         'shirt-outline',
+  Electrónico:  'phone-portrait-outline',
+  Batería:      'battery-half-outline',
+  Pila:         'battery-half-outline',
+  Madera:       'hammer-outline',
+  Tetrapack:    'layers-outline',
+  Poliestireno: 'snow-outline',
+  Foam:         'snow-outline',
+  Icopor:       'snow-outline',
+  Aceite:       'flask-outline',
+  Caucho:       'disc-outline',
+  Llanta:       'disc-outline',
+  Neumático:    'disc-outline',
+  Peligroso:    'warning-outline',
 };
 
 function formatMonth(isoStr) {
@@ -74,17 +76,20 @@ function formatMonth(isoStr) {
   return new Date(isoStr).toLocaleDateString('es', { month: 'long', year: 'numeric' });
 }
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
+  const colors = useColors();
+  const { t } = useI18n();
   const { user, setEcoPoints, refreshUser } = useAuth();
   const { showAlert, showConfirm, showActions } = useModal();
   const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
 
-  // Edit profile
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhotoUri, setEditPhotoUri] = useState(null);
@@ -119,25 +124,24 @@ export default function ProfileScreen() {
 
   async function handleSaveEdit() {
     if (!editName.trim()) {
-      showAlert('Nombre requerido', 'Ingresa al menos un nombre para continuar.', 'info');
+      showAlert(t('profile.nameRequired'), t('profile.nameRequiredMsg'), 'info');
       return;
     }
     setSaving(true);
     try {
-      const promises = [updateUserDisplayName(editName.trim())];
       const firestoreFields = { displayName: editName.trim() };
-      if (editPhotoBase64) {
-        firestoreFields.photoBase64 = editPhotoBase64;
-      }
-      promises.push(updateUserProfileFields(user.uid, firestoreFields));
-      await Promise.all(promises);
+      if (editPhotoBase64) firestoreFields.photoBase64 = editPhotoBase64;
+      await Promise.all([
+        updateUserDisplayName(editName.trim()),
+        updateUserProfileFields(user.uid, firestoreFields),
+      ]);
       refreshUser();
       setLocalDisplayName(editName.trim());
       const fresh = await getUserProfile(user.uid);
       setProfile(fresh);
       setEditOpen(false);
     } catch (_) {
-      showAlert('No se guardaron los cambios', 'Revisa tu conexión e intenta de nuevo.', 'error');
+      showAlert(t('profile.saveError'), t('profile.saveErrorMsg'), 'error');
     } finally {
       setSaving(false);
     }
@@ -154,14 +158,14 @@ export default function ProfileScreen() {
   }
 
   function handlePhotoOptions() {
-    showActions('Cambiar foto', [
+    showActions(t('profile.changePhoto'), [
       {
-        label: 'Tomar foto',
+        label: t('profile.takePhoto'),
         icon: 'camera-outline',
         onPress: async () => {
           const { status } = await ImagePicker.requestCameraPermissionsAsync();
           if (status !== 'granted') {
-            showAlert('Sin acceso a la cámara', 'Permite el acceso en los ajustes de tu dispositivo para tomar una foto.', 'error');
+            showAlert(t('profile.cameraPermission'), t('profile.cameraPermissionMsg'), 'error');
             return;
           }
           const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 1 });
@@ -169,28 +173,28 @@ export default function ProfileScreen() {
         },
       },
       {
-        label: 'Elegir de galería',
+        label: t('profile.fromGallery'),
         icon: 'images-outline',
         onPress: async () => {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') {
-            showAlert('Sin acceso a la galería', 'Permite el acceso en los ajustes de tu dispositivo para elegir una foto.', 'error');
+            showAlert(t('profile.galleryPermission'), t('profile.galleryPermissionMsg'), 'error');
             return;
           }
           const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 1 });
           if (!result.canceled && result.assets[0]) await processPickedImage(result.assets[0].uri);
         },
       },
-      { label: 'Cancelar', cancel: true },
+      { label: t('common.cancel'), cancel: true },
     ]);
   }
 
   function handleReset() {
     setMenuOpen(false);
     showConfirm({
-      title: '¿Borrar todo el progreso?',
-      message: 'Se eliminarán tus escaneos, estadísticas y EcoPoints. Esta acción no se puede deshacer.',
-      confirmLabel: 'Sí, borrar',
+      title: t('profile.clearDataTitle'),
+      message: t('profile.clearDataMsg'),
+      confirmLabel: t('profile.clearDataConfirm'),
       destructive: true,
       onConfirm: async () => {
         setResetting(true);
@@ -200,7 +204,7 @@ export default function ProfileScreen() {
           setProfile(fresh);
           setEcoPoints(0);
         } catch (_) {
-          showAlert('No se pudo limpiar', 'Revisa tu conexión e intenta de nuevo.', 'error');
+          showAlert(t('profile.clearError'), t('profile.clearErrorMsg'), 'error');
         } finally {
           setResetting(false);
         }
@@ -217,8 +221,10 @@ export default function ProfileScreen() {
   }
 
   const pts = profile?.ecoPoints ?? 0;
-  const level = getLevel(pts);
-  const { progress, ptsToNext, nextName } = getLevelProgress(pts);
+  const levelIdx = getLevel(pts);
+  const levelKey = LEVEL_KEYS[levelIdx];
+  const levelMeta = LEVEL_META[levelIdx];
+  const { progress, ptsToNext, nextIdx } = getLevelProgress(pts, levelIdx);
 
   const materials = Object.entries(profile?.materials ?? {}).sort((a, b) => b[1] - a[1]);
   const maxMatCount = materials.reduce((acc, [, c]) => Math.max(acc, c), 1);
@@ -231,14 +237,13 @@ export default function ProfileScreen() {
   const photoSource = profile?.photoBase64
     ? { uri: `data:image/jpeg;base64,${profile.photoBase64}` }
     : null;
-
   const editPhotoSource = editPhotoUri ? { uri: editPhotoUri } : photoSource;
 
   const stats = [
-    { icon: 'star-outline',  value: pts,                                   unit: 'pts', label: 'EcoPoints',    color: colors.amber,  bg: colors.amberLight },
-    { icon: 'scan-outline',  value: totalScans,                            unit: '',    label: 'Escaneos',     color: colors.canopy, bg: colors.sageFaint  },
-    { icon: 'cloud-outline', value: (profile?.totalCo2 ?? 0).toFixed(2),  unit: 'kg',  label: 'CO₂ evitado',  color: colors.sage,   bg: colors.sageFaint  },
-    { icon: 'water-outline', value: Math.round(profile?.totalWater ?? 0), unit: 'L',   label: 'Agua ahorrada', color: colors.canopy, bg: colors.sageFaint  },
+    { icon: 'star-outline',  value: pts,                                   unit: 'pts', label: t('profile.ecopoints'), color: colors.amber,  bg: colors.amberLight },
+    { icon: 'scan-outline',  value: totalScans,                            unit: '',    label: t('profile.scans'),     color: colors.canopy, bg: colors.sageFaint  },
+    { icon: 'cloud-outline', value: (profile?.totalCo2 ?? 0).toFixed(2),  unit: 'kg',  label: t('profile.co2'),       color: colors.sage,   bg: colors.sageFaint  },
+    { icon: 'water-outline', value: Math.round(profile?.totalWater ?? 0), unit: 'L',   label: t('profile.water'),     color: colors.canopy, bg: colors.sageFaint  },
   ];
 
   return (
@@ -247,7 +252,7 @@ export default function ProfileScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: Math.max(16, insets.bottom + 8) }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── HEADER ── */}
+        {/* Header */}
         <View style={[styles.header, { paddingTop: Math.max(52, insets.top + 12) }]}>
           <TouchableOpacity
             style={[styles.menuBtn, { top: Math.max(insets.top, 12) + 4 }]}
@@ -260,14 +265,12 @@ export default function ProfileScreen() {
             }
           </TouchableOpacity>
 
-          {/* Avatar with edit button */}
           <TouchableOpacity style={styles.avatarWrapper} onPress={openEdit} activeOpacity={0.8}>
             <View style={styles.avatarRing}>
-              {photoSource ? (
-                <Image source={photoSource} style={styles.avatarImage} />
-              ) : (
-                <Text style={styles.avatarText}>{initials}</Text>
-              )}
+              {photoSource
+                ? <Image source={photoSource} style={styles.avatarImage} />
+                : <Text style={styles.avatarText}>{initials}</Text>
+              }
             </View>
             <View style={styles.editAvatarBtn}>
               <Ionicons name="pencil" size={11} color={colors.white} />
@@ -278,8 +281,8 @@ export default function ProfileScreen() {
           <Text style={styles.email}>{user?.email}</Text>
 
           <TouchableOpacity style={styles.levelBadge} onPress={() => setLevelOpen(true)} activeOpacity={0.75}>
-            <Ionicons name={level.icon} size={14} color={colors.amber} />
-            <Text style={styles.levelText}>{level.name}</Text>
+            <Ionicons name={levelMeta.icon} size={14} color={colors.amber} />
+            <Text style={styles.levelText}>{t(`profile.levels.${levelKey}`)}</Text>
             <Ionicons name="chevron-forward" size={12} color={colors.amber} />
           </TouchableOpacity>
 
@@ -288,12 +291,14 @@ export default function ProfileScreen() {
               <View style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]} />
             </View>
             <Text style={styles.progressLabel}>
-              {nextName ? `${ptsToNext} pts para ${nextName}` : 'Nivel máximo alcanzado'}
+              {nextIdx !== null
+                ? t('profile.ptsToNext', { n: ptsToNext, level: t(`profile.levels.${LEVEL_KEYS[nextIdx]}`) })
+                : t('profile.levelMax')}
             </Text>
           </View>
         </View>
 
-        {/* ── STATS ── */}
+        {/* Stats */}
         <View style={styles.statsGrid}>
           {stats.map((s) => (
             <View key={s.label} style={styles.statCell}>
@@ -309,17 +314,17 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* ── MATERIALES ── */}
+        {/* Materials */}
         {materials.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Materiales reciclados</Text>
+            <Text style={styles.sectionTitle}>{t('profile.materialsRecycled')}</Text>
             {materials.map(([mat, count], i) => {
-              const info = MATERIAL_ICONS[mat] || { icon: 'help-circle-outline', label: mat };
+              const icon = MATERIAL_ICONS[mat] || 'help-circle-outline';
               const barPct = Math.max(6, (count / maxMatCount) * 100);
               return (
                 <View key={mat} style={[styles.matRow, i > 0 && styles.matRowBorder]}>
-                  <Ionicons name={info.icon} size={16} color={colors.forest} style={{ width: 20 }} />
-                  <Text style={styles.matName} numberOfLines={1} ellipsizeMode="tail">{info.label}</Text>
+                  <Ionicons name={icon} size={16} color={colors.forest} style={{ width: 20 }} />
+                  <Text style={styles.matName} numberOfLines={1} ellipsizeMode="tail">{mat}</Text>
                   <View style={styles.barTrack}>
                     <View style={[styles.barFill, { width: `${barPct}%` }]} />
                   </View>
@@ -330,12 +335,12 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* ── MI CUENTA ── */}
+        {/* Account */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Mi cuenta</Text>
+          <Text style={styles.sectionTitle}>{t('profile.account')}</Text>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Miembro desde</Text>
+            <Text style={styles.infoLabel}>{t('profile.memberSince')}</Text>
             <Text style={styles.infoValue}>{formatMonth(profile?.createdAt)}</Text>
           </View>
 
@@ -343,7 +348,7 @@ export default function ProfileScreen() {
             <>
               <View style={styles.divider} />
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Tasa de reciclaje</Text>
+                <Text style={styles.infoLabel}>{t('profile.recyclingRate')}</Text>
                 <Text style={[styles.infoValue, { color: rate >= 80 ? colors.forest : colors.amber }]}>
                   {rate}%
                 </Text>
@@ -355,53 +360,76 @@ export default function ProfileScreen() {
             <>
               <View style={styles.divider} />
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Material favorito</Text>
+                <Text style={styles.infoLabel}>{t('profile.favMaterial')}</Text>
                 <Text style={styles.infoValue}>{favMaterial}</Text>
               </View>
             </>
           )}
         </View>
 
-        {/* ── CERRAR SESIÓN ── */}
+        {/* Logout */}
         <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={18} color={colors.errorText} />
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
+          <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* ── MENÚ ── */}
+      {/* Dropdown menu */}
       <Modal transparent visible={menuOpen} animationType="fade" onRequestClose={() => setMenuOpen(false)}>
         <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={() => setMenuOpen(false)}>
           <View style={[styles.menuCard, { top: Math.max(insets.top, 16) + 12 }]}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { setMenuOpen(false); navigation.navigate('Settings'); }}
+            >
+              <Ionicons name="settings-outline" size={15} color={colors.stone600} />
+              <Text style={styles.menuItemText}>{t('profile.settings')}</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { setMenuOpen(false); navigation.navigate('About'); }}
+            >
+              <Ionicons name="information-circle-outline" size={15} color={colors.stone600} />
+              <Text style={styles.menuItemText}>{t('profile.about')}</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={handleReset}>
-              <Ionicons name="trash-outline" size={15} color={colors.stone600} />
-              <Text style={styles.menuItemText}>Limpiar datos</Text>
+              <Ionicons name="trash-outline" size={15} color={colors.errorText} />
+              <Text style={[styles.menuItemText, { color: colors.errorText }]}>{t('profile.clearData')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
 
-      {/* ── MODAL NIVELES ── */}
+      {/* Levels modal */}
       <Modal transparent visible={levelOpen} animationType="fade" onRequestClose={() => setLevelOpen(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setLevelOpen(false)}>
           <View style={styles.levelsCard} onStartShouldSetResponder={() => true}>
-            <Text style={styles.levelsTitle}>Niveles de impacto</Text>
-            {LEVELS.map((l, i) => {
-              const reached = pts >= l.min;
-              const current = level.name === l.name;
+            <Text style={styles.levelsTitle}>{t('profile.impactLevels')}</Text>
+            {LEVEL_KEYS.map((key, i) => {
+              const meta = LEVEL_META[i];
+              const reached = pts >= meta.min;
+              const current = i === levelIdx;
               return (
-                <View key={l.name} style={[styles.levelRow, i > 0 && styles.levelRowBorder, current && styles.levelRowActive]}>
-                  <View style={[styles.levelIconCircle, { backgroundColor: current ? `${l.color}22` : colors.stone100 }]}>
-                    <Ionicons name={l.icon} size={18} color={current ? l.color : reached ? colors.stone400 : colors.stone200} />
+                <View key={key} style={[styles.levelRow, i > 0 && styles.levelRowBorder, current && styles.levelRowActive]}>
+                  <View style={[styles.levelIconCircle,
+                    { backgroundColor: current ? `${colors.forest}22` : colors.stone100 }]}>
+                    <Ionicons
+                      name={meta.icon} size={18}
+                      color={current ? colors.forest : reached ? colors.stone400 : colors.stone200}
+                    />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.levelName, current && styles.levelNameActive]}>{l.name}</Text>
+                    <Text style={[styles.levelName, current && styles.levelNameActive]}>
+                      {t(`profile.levels.${key}`)}
+                    </Text>
                     <Text style={styles.levelRange}>
-                      {l.max ? `${l.min} – ${l.max - 1} pts` : `${l.min}+ pts`}
+                      {meta.max ? `${meta.min} – ${meta.max - 1} pts` : `${meta.min}+ pts`}
                     </Text>
                   </View>
                   {current
-                    ? <View style={styles.currentChip}><Text style={styles.currentChipText}>Actual</Text></View>
+                    ? <View style={styles.currentChip}><Text style={styles.currentChipText}>{t('profile.levelCurrent')}</Text></View>
                     : reached
                       ? <Ionicons name="checkmark-circle" size={18} color={colors.canopy} />
                       : <Ionicons name="lock-closed-outline" size={16} color={colors.stone200} />
@@ -413,51 +441,47 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* ── MODAL EDITAR PERFIL ── */}
+      {/* Edit profile modal */}
       <Modal transparent visible={editOpen} animationType="slide" onRequestClose={() => setEditOpen(false)}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.editOverlay}>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => setEditOpen(false)} />
             <View style={[styles.editSheet, { paddingBottom: Math.max(24, insets.bottom + 16) }]}>
               <View style={styles.editHandle} />
-              <Text style={styles.editTitle}>Editar perfil</Text>
+              <Text style={styles.editTitle}>{t('profile.editProfile')}</Text>
 
-              {/* Photo picker */}
               <TouchableOpacity style={styles.editAvatarPicker} onPress={handlePhotoOptions} activeOpacity={0.8}>
                 <View style={styles.editAvatarRing}>
-                  {editPhotoSource ? (
-                    <Image source={editPhotoSource} style={styles.editAvatarImage} />
-                  ) : (
-                    <Text style={styles.editAvatarInitials}>{initials}</Text>
-                  )}
+                  {editPhotoSource
+                    ? <Image source={editPhotoSource} style={styles.editAvatarImage} />
+                    : <Text style={styles.editAvatarInitials}>{initials}</Text>
+                  }
                 </View>
                 <View style={styles.editPhotoBadge}>
                   <Ionicons name="camera" size={14} color={colors.white} />
                 </View>
-                <Text style={styles.editPhotoHint}>Cambiar foto</Text>
+                <Text style={styles.editPhotoHint}>{t('profile.changePhoto')}</Text>
               </TouchableOpacity>
 
-              {/* Name input */}
-              <Text style={styles.editFieldLabel}>Nombre</Text>
+              <Text style={styles.editFieldLabel}>{t('profile.nameLabel')}</Text>
               <TextInput
                 style={styles.editInput}
                 value={editName}
                 onChangeText={setEditName}
-                placeholder="Tu nombre"
+                placeholder={t('profile.namePlaceholder')}
                 placeholderTextColor={colors.stone400}
                 autoCorrect={false}
                 maxLength={40}
               />
 
-              {/* Buttons */}
               <View style={styles.editActions}>
                 <TouchableOpacity style={styles.editCancelBtn} onPress={() => setEditOpen(false)}>
-                  <Text style={styles.editCancelText}>Cancelar</Text>
+                  <Text style={styles.editCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.editSaveBtn} onPress={handleSaveEdit} disabled={saving}>
                   {saving
                     ? <ActivityIndicator size="small" color={colors.white} />
-                    : <Text style={styles.editSaveText}>Guardar</Text>
+                    : <Text style={styles.editSaveText}>{t('common.save')}</Text>
                   }
                 </TouchableOpacity>
               </View>
@@ -469,315 +493,135 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bark },
+const makeStyles = (c) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: c.bark },
   content: {},
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bark },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: c.bark },
 
-  // ── Header ──
   header: {
-    backgroundColor: colors.forest,
-    paddingBottom: space.lg,
-    alignItems: 'center',
-    paddingHorizontal: space.xl,
+    backgroundColor: c.forest, paddingBottom: space.lg, alignItems: 'center', paddingHorizontal: space.xl,
   },
   menuBtn: { position: 'absolute', right: space.lg, padding: space.xs },
   avatarWrapper: { position: 'relative', marginBottom: space.sm },
   avatarRing: {
-    width: 80,
-    height: 80,
-    borderRadius: radius.pill,
-    backgroundColor: colors.amberLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2.5,
-    borderColor: colors.amber,
-    overflow: 'hidden',
+    width: 80, height: 80, borderRadius: radius.pill,
+    backgroundColor: c.amberLight, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2.5, borderColor: c.amber, overflow: 'hidden',
   },
   avatarImage: { width: 80, height: 80 },
-  avatarText: { fontFamily: font.bold, fontSize: size.xl, color: colors.forest },
+  avatarText: { fontFamily: font.bold, fontSize: size.xl, color: c.forest },
   editAvatarBtn: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 24,
-    height: 24,
-    borderRadius: radius.pill,
-    backgroundColor: colors.canopy,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.forest,
+    position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, borderRadius: radius.pill,
+    backgroundColor: c.canopy, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: c.forest,
   },
-  name: {
-    fontFamily: font.extrabold,
-    fontSize: size.lg,
-    color: colors.white,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  email: {
-    fontFamily: font.regular,
-    fontSize: size.sm,
-    color: 'rgba(255,255,255,0.55)',
-    marginTop: 2,
-    marginBottom: space.sm,
-    textAlign: 'center',
-  },
+  name: { fontFamily: font.extrabold, fontSize: size.lg, color: c.white, textAlign: 'center', letterSpacing: -0.3 },
+  email: { fontFamily: font.regular, fontSize: size.sm, color: 'rgba(255,255,255,0.55)', marginTop: 2, marginBottom: space.sm, textAlign: 'center' },
   levelBadge: {
-    flexDirection: 'row',
-    gap: space.xs,
-    alignItems: 'center',
-    backgroundColor: 'rgba(193,122,58,0.20)',
-    paddingHorizontal: space.md,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    marginBottom: space.md,
+    flexDirection: 'row', gap: space.xs, alignItems: 'center',
+    backgroundColor: 'rgba(193,122,58,0.20)', paddingHorizontal: space.md,
+    paddingVertical: 5, borderRadius: radius.pill, marginBottom: space.md,
   },
-  levelText: { fontFamily: font.semibold, fontSize: size.sm, color: colors.amber },
-
+  levelText: { fontFamily: font.semibold, fontSize: size.sm, color: c.amber },
   progressWrap: { width: '100%', alignItems: 'center', gap: space.xs },
   progressTrack: {
-    width: '80%',
-    height: 5,
-    backgroundColor: 'rgba(255,255,255,0.20)',
-    borderRadius: radius.pill,
-    overflow: 'hidden',
+    width: '80%', height: 5, backgroundColor: 'rgba(255,255,255,0.20)',
+    borderRadius: radius.pill, overflow: 'hidden',
   },
-  progressFill: { height: '100%', backgroundColor: colors.amber, borderRadius: radius.pill },
-  progressLabel: {
-    fontFamily: font.medium,
-    fontSize: size.xs,
-    color: 'rgba(255,255,255,0.60)',
-    textAlign: 'center',
-  },
+  progressFill: { height: '100%', backgroundColor: c.amber, borderRadius: radius.pill },
+  progressLabel: { fontFamily: font.medium, fontSize: size.xs, color: 'rgba(255,255,255,0.60)', textAlign: 'center' },
 
-  // ── Stats ──
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: space.lg, gap: space.sm },
-  statCell: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: space.lg,
-    width: '47%',
-    ...shadow.sm,
-  },
-  statIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: space.sm,
-  },
-  statVal: { fontFamily: font.extrabold, fontSize: size.xl, color: colors.ink },
-  statUnit: { fontFamily: font.medium, fontSize: size.base, color: colors.stone400 },
-  statLabel: {
-    fontFamily: font.medium,
-    fontSize: size.xs,
-    color: colors.stone400,
-    marginTop: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
+  statCell: { backgroundColor: c.surface, borderRadius: radius.md, padding: space.lg, width: '47%', ...shadow.sm },
+  statIconWrap: { width: 34, height: 34, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
+  statVal: { fontFamily: font.extrabold, fontSize: size.xl, color: c.ink },
+  statUnit: { fontFamily: font.medium, fontSize: size.base, color: c.stone400 },
+  statLabel: { fontFamily: font.medium, fontSize: size.xs, color: c.stone400, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.4 },
 
-  // ── Card ──
-  card: {
-    backgroundColor: colors.surface,
-    marginHorizontal: space.lg,
-    borderRadius: radius.md,
-    padding: space.lg,
-    ...shadow.sm,
-    marginBottom: space.sm,
-  },
-  sectionTitle: {
-    fontFamily: font.semibold,
-    fontSize: size.xs,
-    color: colors.stone400,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: space.md,
-  },
+  card: { backgroundColor: c.surface, marginHorizontal: space.lg, borderRadius: radius.md, padding: space.lg, ...shadow.sm, marginBottom: space.sm },
+  sectionTitle: { fontFamily: font.semibold, fontSize: size.xs, color: c.stone400, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: space.md },
 
-  // ── Materials ──
   matRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },
-  matRowBorder: { borderTopWidth: 1, borderTopColor: colors.stone100 },
-  matName: { fontFamily: font.medium, fontSize: size.sm, color: colors.ink, flex: 2 },
-  barTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: colors.stone100,
-    borderRadius: radius.pill,
-    overflow: 'hidden',
-  },
-  barFill: { height: '100%', backgroundColor: colors.canopy, borderRadius: radius.pill },
-  matCount: { fontFamily: font.bold, fontSize: size.sm, color: colors.stone600, width: 24, textAlign: 'right' },
+  matRowBorder: { borderTopWidth: 1, borderTopColor: c.stone100 },
+  matName: { fontFamily: font.medium, fontSize: size.sm, color: c.ink, flex: 2 },
+  barTrack: { flex: 1, height: 6, backgroundColor: c.stone100, borderRadius: radius.pill, overflow: 'hidden' },
+  barFill: { height: '100%', backgroundColor: c.canopy, borderRadius: radius.pill },
+  matCount: { fontFamily: font.bold, fontSize: size.sm, color: c.stone600, width: 24, textAlign: 'right' },
 
-  // ── Account info ──
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: space.sm },
-  infoLabel: { fontFamily: font.regular, fontSize: size.base, color: colors.stone600 },
-  infoValue: { fontFamily: font.semibold, fontSize: size.base, color: colors.ink },
-  divider: { height: 1, backgroundColor: colors.stone100 },
+  infoLabel: { fontFamily: font.regular, fontSize: size.base, color: c.stone600 },
+  infoValue: { fontFamily: font.semibold, fontSize: size.base, color: c.ink },
+  divider: { height: 1, backgroundColor: c.stone100 },
 
-  // ── Logout ──
   logoutBtn: {
-    flexDirection: 'row',
-    gap: space.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: space.lg,
-    marginTop: space.sm,
-    borderWidth: 1,
-    borderColor: colors.outline,
-    borderRadius: radius.md,
-    paddingVertical: space.md,
-    backgroundColor: colors.surface,
+    flexDirection: 'row', gap: space.sm, alignItems: 'center', justifyContent: 'center',
+    marginHorizontal: space.lg, marginTop: space.sm, borderWidth: 1, borderColor: c.outline,
+    borderRadius: radius.md, paddingVertical: space.md, backgroundColor: c.surface,
   },
-  logoutText: { fontFamily: font.semibold, fontSize: size.base, color: colors.errorText },
+  logoutText: { fontFamily: font.semibold, fontSize: size.base, color: c.errorText },
 
-  // ── Dropdown menu ──
   menuOverlay: { flex: 1 },
   menuCard: {
-    position: 'absolute',
-    right: space.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingVertical: space.xs,
-    ...shadow.lg,
-    minWidth: 170,
+    position: 'absolute', right: space.md, backgroundColor: c.surface,
+    borderRadius: radius.md, paddingVertical: space.xs, ...shadow.lg, minWidth: 190,
+    borderWidth: 1, borderColor: c.stone100,
   },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.md },
-  menuItemText: { fontFamily: font.regular, fontSize: size.base, color: colors.stone600 },
+  menuItemText: { fontFamily: font.regular, fontSize: size.base, color: c.stone600 },
+  menuDivider: { height: 1, backgroundColor: c.stone100, marginHorizontal: space.sm },
 
-  // ── Levels modal ──
   modalOverlay: {
-    flex: 1,
-    backgroundColor: colors.overlayDark,
-    justifyContent: 'center',
-    paddingHorizontal: space.xl,
+    flex: 1, backgroundColor: c.overlayDark, justifyContent: 'center', paddingHorizontal: space.xl,
   },
-  levelsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: space.lg,
-    ...shadow.lg,
-  },
-  levelsTitle: {
-    fontFamily: font.bold,
-    fontSize: size.md,
-    color: colors.ink,
-    marginBottom: space.md,
-    letterSpacing: -0.2,
-  },
-  levelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    paddingVertical: space.sm,
-  },
-  levelRowBorder: { borderTopWidth: 1, borderTopColor: colors.stone100 },
-  levelRowActive: { backgroundColor: colors.sageFaint, marginHorizontal: -space.lg, paddingHorizontal: space.lg },
-  levelIconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  levelName: { fontFamily: font.medium, fontSize: size.base, color: colors.stone600 },
-  levelNameActive: { fontFamily: font.bold, color: colors.ink },
-  levelRange: { fontFamily: font.regular, fontSize: size.xs, color: colors.stone400, marginTop: 1 },
-  currentChip: {
-    backgroundColor: colors.forest,
-    borderRadius: radius.pill,
-    paddingHorizontal: space.sm,
-    paddingVertical: 3,
-  },
-  currentChipText: { fontFamily: font.bold, fontSize: size.xs, color: colors.white },
+  levelsCard: { backgroundColor: c.surface, borderRadius: radius.lg, padding: space.lg, ...shadow.lg },
+  levelsTitle: { fontFamily: font.bold, fontSize: size.md, color: c.ink, marginBottom: space.md, letterSpacing: -0.2 },
+  levelRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm },
+  levelRowBorder: { borderTopWidth: 1, borderTopColor: c.stone100 },
+  levelRowActive: { backgroundColor: c.sageFaint, marginHorizontal: -space.lg, paddingHorizontal: space.lg },
+  levelIconCircle: { width: 38, height: 38, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  levelName: { fontFamily: font.medium, fontSize: size.base, color: c.stone600 },
+  levelNameActive: { fontFamily: font.bold, color: c.ink },
+  levelRange: { fontFamily: font.regular, fontSize: size.xs, color: c.stone400, marginTop: 1 },
+  currentChip: { backgroundColor: c.forest, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 3 },
+  currentChipText: { fontFamily: font.bold, fontSize: size.xs, color: c.white },
 
-  // ── Edit profile modal ──
-  editOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlayDark },
+  editOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: c.overlayDark },
   editSheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    paddingHorizontal: space.xl,
-    paddingTop: space.md,
+    backgroundColor: c.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
+    paddingHorizontal: space.xl, paddingTop: space.md,
   },
-  editHandle: {
-    width: 36,
-    height: 4,
-    backgroundColor: colors.stone200,
-    borderRadius: radius.pill,
-    alignSelf: 'center',
-    marginBottom: space.lg,
-  },
-  editTitle: {
-    fontFamily: font.bold,
-    fontSize: size.md,
-    color: colors.ink,
-    marginBottom: space.lg,
-    letterSpacing: -0.2,
-  },
+  editHandle: { width: 36, height: 4, backgroundColor: c.stone200, borderRadius: radius.pill, alignSelf: 'center', marginBottom: space.lg },
+  editTitle: { fontFamily: font.bold, fontSize: size.md, color: c.ink, marginBottom: space.lg, letterSpacing: -0.2 },
   editAvatarPicker: { alignItems: 'center', marginBottom: space.lg },
   editAvatarRing: {
-    width: 80,
-    height: 80,
-    borderRadius: radius.pill,
-    backgroundColor: colors.amberLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2.5,
-    borderColor: colors.amber,
-    overflow: 'hidden',
-    marginBottom: space.xs,
+    width: 80, height: 80, borderRadius: radius.pill,
+    backgroundColor: c.amberLight, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2.5, borderColor: c.amber, overflow: 'hidden', marginBottom: space.xs,
   },
   editAvatarImage: { width: 80, height: 80 },
-  editAvatarInitials: { fontFamily: font.bold, fontSize: size.xl, color: colors.forest },
+  editAvatarInitials: { fontFamily: font.bold, fontSize: size.xl, color: c.forest },
   editPhotoBadge: {
-    position: 'absolute',
-    bottom: 24,
-    right: '50%',
-    marginRight: -52,
-    width: 26,
-    height: 26,
-    borderRadius: radius.pill,
-    backgroundColor: colors.canopy,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.surface,
+    position: 'absolute', bottom: 24, right: '50%', marginRight: -52,
+    width: 26, height: 26, borderRadius: radius.pill, backgroundColor: c.canopy,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.surface,
   },
-  editPhotoHint: { fontFamily: font.medium, fontSize: size.sm, color: colors.canopy },
-  editFieldLabel: { fontFamily: font.semibold, fontSize: size.sm, color: colors.stone600, marginBottom: space.xs },
+  editPhotoHint: { fontFamily: font.medium, fontSize: size.sm, color: c.canopy },
+  editFieldLabel: { fontFamily: font.semibold, fontSize: size.sm, color: c.stone600, marginBottom: space.xs },
   editInput: {
-    borderWidth: 1.5,
-    borderColor: colors.outline,
-    borderRadius: radius.md,
-    paddingHorizontal: space.md,
-    paddingVertical: space.md,
-    fontFamily: font.regular,
-    fontSize: size.base,
-    color: colors.ink,
-    marginBottom: space.lg,
-    backgroundColor: colors.bark,
+    borderWidth: 1.5, borderColor: c.outline, borderRadius: radius.md,
+    paddingHorizontal: space.md, paddingVertical: space.md,
+    fontFamily: font.regular, fontSize: size.base, color: c.ink,
+    marginBottom: space.lg, backgroundColor: c.bark,
   },
   editActions: { flexDirection: 'row', gap: space.sm },
   editCancelBtn: {
-    flex: 1,
-    paddingVertical: space.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.outline,
-    alignItems: 'center',
+    flex: 1, paddingVertical: space.md, borderRadius: radius.md,
+    borderWidth: 1, borderColor: c.outline, alignItems: 'center',
   },
-  editCancelText: { fontFamily: font.semibold, fontSize: size.base, color: colors.stone600 },
+  editCancelText: { fontFamily: font.semibold, fontSize: size.base, color: c.stone600 },
   editSaveBtn: {
-    flex: 2,
-    paddingVertical: space.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.forest,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 2, paddingVertical: space.md, borderRadius: radius.md,
+    backgroundColor: c.forest, alignItems: 'center', justifyContent: 'center',
   },
-  editSaveText: { fontFamily: font.bold, fontSize: size.base, color: colors.white },
+  editSaveText: { fontFamily: font.bold, fontSize: size.base, color: c.white },
 });

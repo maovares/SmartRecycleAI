@@ -1,14 +1,20 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { resendVerification, checkEmailVerified, logout } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { useModal } from '../context/ModalContext';
-import { colors, font, size, space, radius, shadow } from '../theme';
+import { useColors } from '../context/ThemeContext';
+import { useI18n } from '../i18n';
+import { font, size, space, radius, shadow } from '../theme';
 
 export default function VerifyScreen() {
+  const colors = useColors();
+  const { t } = useI18n();
   const { user, refreshUser } = useAuth();
   const { showAlert } = useModal();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const [checking, setChecking] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -16,9 +22,9 @@ export default function VerifyScreen() {
     setSending(true);
     try {
       await resendVerification();
-      showAlert('Correo enviado', 'Revisa tu bandeja de entrada y toca el enlace para activar tu cuenta.', 'success');
-    } catch (err) {
-      showAlert('No se pudo reenviar', 'Intenta de nuevo en un momento. Si el problema persiste, cierra sesión y vuelve a registrarte.', 'error');
+      showAlert(t('verify.resendSuccess'), t('verify.resendSuccessMsg'), 'success');
+    } catch {
+      showAlert(t('verify.resendFailed'), t('verify.resendFailedMsg'), 'error');
     } finally {
       setSending(false);
     }
@@ -31,10 +37,10 @@ export default function VerifyScreen() {
       if (verified) {
         refreshUser();
       } else {
-        showAlert('Aún no verificado', 'Todavía no detectamos la verificación. Abre el enlace del correo y vuelve a intentarlo.', 'info');
+        showAlert(t('verify.notVerified'), t('verify.notVerifiedMsg'), 'info');
       }
-    } catch (err) {
-      showAlert('Algo salió mal', 'No pudimos comprobar tu estado. Intenta de nuevo en un momento.', 'error');
+    } catch {
+      showAlert(t('verify.checkError'), t('verify.checkErrorMsg'), 'error');
     } finally {
       setChecking(false);
     }
@@ -46,14 +52,12 @@ export default function VerifyScreen() {
         <Ionicons name="mail-outline" size={40} color={colors.forest} />
       </View>
 
-      <Text style={styles.title}>Verifica tu correo</Text>
+      <Text style={styles.title}>{t('verify.title')}</Text>
       <Text style={styles.body}>
-        Enviamos un enlace a{'\n'}
+        {'Enviamos un enlace a\n'}
         <Text style={styles.email}>{user?.email}</Text>
       </Text>
-      <Text style={styles.hint}>
-        Abre el correo, toca el enlace y vuelve aquí.
-      </Text>
+      <Text style={styles.hint}>{t('verify.hint')}</Text>
 
       <TouchableOpacity
         style={styles.primaryBtn}
@@ -63,7 +67,7 @@ export default function VerifyScreen() {
       >
         <Ionicons name="checkmark-circle-outline" size={18} color={colors.white} />
         <Text style={styles.primaryBtnText}>
-          {checking ? 'Verificando...' : 'Ya verifiqué mi correo'}
+          {checking ? t('verify.verifying') : t('verify.verified')}
         </Text>
       </TouchableOpacity>
 
@@ -75,79 +79,57 @@ export default function VerifyScreen() {
       >
         <Ionicons name="refresh-outline" size={16} color={colors.forest} />
         <Text style={styles.secondaryBtnText}>
-          {sending ? 'Enviando...' : 'Reenviar correo'}
+          {sending ? t('verify.sending') : t('verify.resend')}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
+        <Text style={styles.logoutText}>{t('verify.logout')}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c) => StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.bark,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: space.xxl,
+    flex: 1, backgroundColor: c.bark,
+    alignItems: 'center', justifyContent: 'center', padding: space.xxl,
   },
   iconRing: {
     width: 100, height: 100, borderRadius: radius.pill,
-    backgroundColor: colors.sageFaint,
-    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: c.sageFaint, alignItems: 'center', justifyContent: 'center',
     marginBottom: space.xl,
   },
   title: {
-    fontFamily: font.display,
-    fontSize: size.lg,
-    color: colors.ink,
-    marginBottom: space.md,
-    textAlign: 'center',
+    fontFamily: font.display, fontSize: size.lg, color: c.ink,
+    marginBottom: space.md, textAlign: 'center',
   },
   body: {
-    fontFamily: font.regular,
-    fontSize: size.base,
-    color: colors.stone600,
-    textAlign: 'center',
-    lineHeight: 22,
+    fontFamily: font.regular, fontSize: size.base, color: c.stone600,
+    textAlign: 'center', lineHeight: 22,
   },
-  email: { fontFamily: font.bold, color: colors.forest },
+  email: { fontFamily: font.bold, color: c.forest },
   hint: {
-    fontFamily: font.regular,
-    fontSize: size.sm,
-    color: colors.stone400,
-    textAlign: 'center',
-    marginTop: space.sm,
-    marginBottom: space.xxl,
-    lineHeight: 19,
+    fontFamily: font.regular, fontSize: size.sm, color: c.stone400,
+    textAlign: 'center', marginTop: space.sm, marginBottom: space.xxl, lineHeight: 19,
   },
   primaryBtn: {
-    flexDirection: 'row', gap: space.sm,
-    backgroundColor: colors.forest,
-    borderRadius: radius.md,
-    paddingVertical: space.lg, paddingHorizontal: space.xl,
+    flexDirection: 'row', gap: space.sm, backgroundColor: c.forest,
+    borderRadius: radius.md, paddingVertical: space.lg, paddingHorizontal: space.xl,
     alignItems: 'center', width: '100%', justifyContent: 'center',
-    marginBottom: space.sm,
-    ...shadow.sm,
+    marginBottom: space.sm, ...shadow.sm,
   },
-  primaryBtnText: { fontFamily: font.bold, fontSize: size.base, color: colors.white },
+  primaryBtnText: { fontFamily: font.bold, fontSize: size.base, color: c.white },
   secondaryBtn: {
     flexDirection: 'row', gap: space.sm,
-    borderWidth: 1.5, borderColor: colors.stone200,
-    borderRadius: radius.md,
+    borderWidth: 1.5, borderColor: c.stone200, borderRadius: radius.md,
     paddingVertical: space.md, paddingHorizontal: space.xl,
-    alignItems: 'center', width: '100%', justifyContent: 'center',
-    marginBottom: space.xl,
+    alignItems: 'center', width: '100%', justifyContent: 'center', marginBottom: space.xl,
   },
-  secondaryBtnText: { fontFamily: font.semibold, fontSize: size.base, color: colors.forest },
+  secondaryBtnText: { fontFamily: font.semibold, fontSize: size.base, color: c.forest },
   logoutBtn: { marginTop: space.sm },
   logoutText: {
-    fontFamily: font.regular,
-    fontSize: size.sm,
-    color: colors.stone400,
+    fontFamily: font.regular, fontSize: size.sm, color: c.stone400,
     textDecorationLine: 'underline',
   },
 });
