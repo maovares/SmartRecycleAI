@@ -25,28 +25,24 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: SmartRecycleAI
 
       - name: Restore google-services.json
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > google-services.json
-        working-directory: SmartRecycleAI
 
       - name: Expo prebuild
         run: npx expo prebuild --platform android --non-interactive
-        working-directory: SmartRecycleAI
         env:
           NODE_ENV: production
 
       - name: Patch CMake version
         run: sed -i 's/version "3.31.0"/version "3.31.6"/' android/app/build.gradle
-        working-directory: SmartRecycleAI
 
       - name: Install CMake 3.31.6
         run: echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "cmake;3.31.6"
 
       - name: Build APK
         run: ./gradlew assembleDebug
-        working-directory: SmartRecycleAI/android
+        working-directory: android
         env:
           NODE_ENV: production
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
@@ -60,4 +56,4 @@ jobs:
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: SmartRecycleAI/android/app/build/outputs/apk/debug/SmartRecycle-v*.apk
+          files: android/app/build/outputs/apk/debug/SmartRecycle-v*.apk
