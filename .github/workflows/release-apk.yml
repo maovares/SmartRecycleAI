@@ -59,3 +59,21 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: android/app/build/outputs/apk/debug/SmartRecycle-v*.apk
+
+      - name: Locate built APK
+        id: apk
+        working-directory: android/app/build/outputs/apk/debug
+        run: echo "path=$(pwd)/$(ls SmartRecycle-v*.apk)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Firebase Android App ID
+        id: firebase
+        run: echo "app_id=$(jq -r '.client[0].client_info.mobilesdk_app_id' google-services.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ steps.firebase.outputs.app_id }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: beta-testers
+          file: ${{ steps.apk.outputs.path }}
+          releaseNotes: ${{ github.event.release.body }}
