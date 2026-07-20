@@ -3,6 +3,8 @@ name: Build Release APK
 on:
   release:
     types: [created]
+permissions:
+  contents: write
 
 jobs:
   build-android:
