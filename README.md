@@ -782,10 +782,35 @@ React Native carece de algunas APIs del navegador. El archivo `polyfills.js` las
 
 ---
 
-## Créditos y Licencia
+## Descarga y uso
+
+La versión más reciente de la aplicación (APK para Android) y el código fuente se descargan desde la sección **Releases**:
+
+**[Descargar la última versión](https://github.com/maovares/SmartRecycleAI/releases/latest)**
+
+| Archivo | Contenido |
+|---|---|
+| `SmartRecycle-v*.apk` | Aplicación instalable en Android (habilite la instalación desde orígenes desconocidos) |
+| `Source code (zip / tar.gz)` | Código fuente de esa versión |
+
+La aplicación requiere el servicio [SmartRecycleBackend](https://github.com/maovares/SmartRecycleBackend) para clasificar residuos y localizar centros de acopio.
+
+---
+
+## Licencia y política de uso
+
+Este proyecto es **software libre** bajo la [licencia MIT](LICENSE). Usted puede usar, copiar, modificar, fusionar, publicar, distribuir y sublicenciar el software, incluso con fines comerciales, **siempre que conserve el aviso de copyright y la mención a los autores** en todas las copias o partes sustanciales del software.
+
+---
+
+## Créditos
 
 Desarrollado como proyecto de investigación aplicada para la gestión de residuos sólidos en Costa Rica, integrando técnicas de visión por computadora e inteligencia artificial generativa para el fomento de hábitos de reciclaje.
 
-**Autor:** Marcos Rodríguez Ovares  
-**Correo:** ma.rodriguez@itcr.ac.cr 
-**Año:** 2025–2026
+- **Autores:** Marcos Antonio Rodríguez Ovares (ma.rodriguez@itcr.ac.cr) y Kevin Said Reyes Quesada (k.reyes.1@estudiantec.cr)
+- **Institución:** Instituto Tecnológico de Costa Rica
+- **Año:** 2025–2026
+
+### Cómo citar
+
+M. Rodríguez Ovares y K. S. Reyes Quesada, "SmartRecycle AI: Plataforma Móvil de Reciclaje Inteligente Basada en Visión Computacional e Inteligencia Artificial Generativa," en *Actas de COMPDES 2026*, 2026.
